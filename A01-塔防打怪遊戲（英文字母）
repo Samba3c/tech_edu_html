@@ -1,4 +1,10 @@
-<style>
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>字母塔防遊戲</title>
+    <style>
         body {
             background: linear-gradient(135deg, #1E3C72, #2A5298); /* 深藍漸層 */
             display: flex;
@@ -129,9 +135,9 @@
 </head>
 <body>
     <div id="game-container">
-<div id="author">程式作者：阿邦老師 Ver.20250313</div>
-<div id="game-over">GAME OVER</div>
-<div id="game-time"></div>
+        <div id="author">程式作者：阿邦老師 Ver.20250313</div>
+        <div id="game-over">GAME OVER</div>
+        <div id="game-time"></div>
     </div>
     <script>
         const gameContainer = document.getElementById('game-container');
@@ -160,7 +166,7 @@
         }
 
 function animateMonster(monster, index) {
-    let speed = Math.random() * 0.5 + 0.2; // 調整速度範圍
+    let speed = Math.random() * 0.5 + 0.4; // 調整速度範圍
     function move() {
         let top = parseFloat(monster.style.top);
         let gameHeight = gameContainer.clientHeight;
@@ -258,13 +264,14 @@ function animateMonster(monster, index) {
 
 
 function endGame() {
-    let elapsedTime = ((Date.now() - startTime) / 1000).toFixed(1); // 計算經過的秒數
+    let elapsedTime = ((Date.now() - startTime) / 1000).toFixed(1);  // 計算經過的時間
     gameOverText.style.display = 'block';
     
     let gameTimeText = document.getElementById('game-time');
     gameTimeText.innerText = `遊戲時間：${elapsedTime} 秒`;
     gameTimeText.style.display = 'block';
 }
+
 
 
 function checkFortCollision() {
@@ -312,3 +319,4 @@ function checkFortCollision() {
         }
     </script>
 </body>
+</html>
