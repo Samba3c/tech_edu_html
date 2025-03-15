@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Word Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            margin-top: 1px;
+            border-collapse: collapse;
+        }
+        td {
+            padding: 20px;
+            vertical-align: top;
+        }
+        /* 修改第一個欄位的內容靠右對齊 */
+        td:first-child {
+            text-align: right;
+        }
+        /* 修改第二個欄位的內容靠左對齊 */
+        td:last-child {
+            text-align: left;
+        }
+        canvas {
+            border: 2px solid black;
+            background-color: #f0f8ff;
+        }
+        .info {
+            font-size: 20px;
+            margin-top: 10px;
+        }
+        #wordInput {
+            font-size: 24px;
+            padding: 10px;
+            width: 300px;
+        }
+        #wordDisplay {
+            color: red;
+            font-weight: bold;
+            font-size: 36px;
+        }
+        #nextLetter {
+            font-size: 36px;
+            font-weight: bold;
+            color: blue;
+        }
+        #collectedLetters {
+            font-size: 24px;
+            font-weight: bold;
+            color: green;
+        }
+        #wordTranslation {
+            color: gray;
+            font-weight: bold;
+            font-size: 24px;
+        }
+        footer {
+            margin-top: 30px;
+            font-size: 16px;
+            color: gray;
+        }
+    </style>
+</head>
+<body>
+    <!-- 1x2 表格 -->
+    <table>
+        <tr>
+            <td>
+                <p>Enter the correct word and press ENTER↵ to start：</p>
+                <p class="info">Word to Enter： <span id="wordDisplay"></span>-<span id="wordTranslation"></span></p>
+                <input type="text" id="wordInput" onkeydown="if(event.key==='Enter') startGame()">
+                <p class="info">Next Letter to eat： <span id="nextLetter"></span></p>
+                <p class="info">Collected： <span id="collectedLetters"></span></p>
+                <p id="gameTime" class="info"></p>
+                <button onclick="restartGame()">Restart</button>
+                <br><br>
+                    <p>程式作者：阿邦老師 Ver.20250312</p>
+            </td>
+            <td>
+                <canvas id="gameCanvas" width="800" height="600"></canvas>
+            </td>
+        </tr>
+    </table>
+
+    <script>
+        const words = ["orange", "apple", "melon", "banana", "grape", "peach", "lemon", "cherry", "mango", "plum"];
+        const wordTranslations = {
+            "orange": "橙子",
+            "apple": "蘋果",
+            "melon": "瓜類",
+            "banana": "香蕉",
+            "grape": "葡萄",
+            "peach": "桃子",
+            "lemon": "檸檬",
+            "cherry": "櫻桃",
+            "mango": "芒果",
+            "plum": "李子"
+        };
+
+        let chosenWord = words[Math.floor(Math.random() * words.length)];
+
+        function updateWordDisplay() {
+            document.getElementById("wordDisplay").textContent = chosenWord;
+            document.getElementById("wordTranslation").textContent = wordTranslations[chosenWord] || "未知";
+            document.getElementById("nextLetter").textContent = chosenWord[0];
+        }
+
+        updateWordDisplay();
+        
+        let snake = [
+            {x: 200, y: 200},
+            {x: 170, y: 200},
+            {x: 140, y: 200},
+            {x: 110, y: 200}
+        ];
+        let direction = {x: 30, y: 0};
+        let letters = [];
+        let collected = "";
+        let gameRunning = false;
+        let startTime, endTime;
+
+        function startGame() {
+            let inputWord = document.getElementById("wordInput").value.toLowerCase();
+            if (inputWord === chosenWord) {
+                gameRunning = true;
+                collected = "";
+                document.getElementById("collectedLetters").textContent = "";
+                document.getElementById("wordInput").disabled = true;
+                document.getElementById("gameTime").textContent = ""; 
+                startTime = new Date(); 
+                placeLetters();
+                gameLoop();
+            }
+        }
+
+        function placeLetters() {
+            letters = [];
+            let positions = new Set();
+            chosenWord.split('').forEach(letter => {
+                let x, y, pos;
+                do {
+                    x = Math.floor(Math.random() * (800 / 30)) * 30; 
+                    y = Math.floor(Math.random() * (600 / 30)) * 30;
+                    pos = `${x},${y}`;
+                } while (positions.has(pos)); 
+                positions.add(pos);
+                letters.push({ x, y, letter });
+            });
+        }
+
+        function gameLoop() {
+            if (!gameRunning) return;
+            setTimeout(() => {
+                moveSnake();
+                checkCollision();
+                drawGame();
+                gameLoop();
+            }, 120);
+        }
+
+        function moveSnake() {
+            let newHead = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+            if (newHead.x >= 800) newHead.x = 0;
+            if (newHead.x < 0) newHead.x = 780;
+            if (newHead.y >= 600) newHead.y = 0;
+            if (newHead.y < 0) newHead.y = 580;
+            snake.unshift(newHead);
+            if (collected.length < snake.length - 4) {
+                snake.pop();
+            }
+        }
+
+        function checkCollision() {
+            let head = snake[0];
+            let index = letters.findIndex(l => Math.abs(l.x - head.x) < 20 && Math.abs(l.y - head.y) < 20);
+            if (index !== -1) {
+                if (letters[index].letter === chosenWord[collected.length]) {
+                    collected += letters[index].letter;
+                    document.getElementById("collectedLetters").textContent = collected;
+                    document.getElementById("nextLetter").textContent = chosenWord[collected.length] || "✔";
+                    letters.splice(index, 1); 
+                    snake.push({x: snake[snake.length - 1].x, y: snake[snake.length - 1].y}); 
+                }
+            }
+    if (collected === chosenWord && gameRunning) {
+        // 當玩家完成字詞後，延遲 1 秒再結束遊戲
+        endTime = new Date();
+        let gameTime = Math.floor((endTime - startTime) / 1000);
+        
+        // 延遲 1 秒後結束遊戲
+        gameRunning = false;  // 防止重複觸發
+        setTimeout(() => {
+            alert("You win!");
+            document.getElementById("gameTime").textContent = `Game Time：${gameTime} sec`;
+        }, 1000);  // 延遲 1 秒後顯示勝利訊息
+    }
+        }
+
+        function drawGame() {
+            let canvas = document.getElementById("gameCanvas");
+            let ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height); 
+            
+            snake.forEach((segment, i) => {
+                ctx.beginPath();
+                ctx.fillStyle = i === 0 ? "#1E90FF" : "#87CEFA"; 
+                ctx.arc(segment.x + 15, segment.y + 15, 15, 0, Math.PI * 2); 
+                ctx.fill();
+                ctx.closePath();
+                
+                if (i === 0) {
+                    ctx.fillStyle = "black";
+                    ctx.beginPath();
+                    ctx.arc(segment.x + 10, segment.y + 10, 3, 0, Math.PI * 2);
+                    ctx.arc(segment.x + 20, segment.y + 10, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = "black";
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(segment.x + 15, segment.y + 20, 6, 0, Math.PI);
+                    ctx.stroke();
+                }
+            });
+
+            ctx.fillStyle = "red";
+            ctx.font = "30px Arial";
+            letters.forEach(letter => {
+                ctx.fillText(letter.letter.toUpperCase(), letter.x + 5, letter.y + 25);
+            });
+        }
+
+        function restartGame() {
+            document.getElementById("wordInput").value = "";
+            document.getElementById("wordInput").disabled = false;
+            document.getElementById("collectedLetters").textContent = "";
+            document.getElementById("gameTime").textContent = "";
+            collected = "";
+            chosenWord = words[Math.floor(Math.random() * words.length)];
+            updateWordDisplay(); 
+            snake = [{x: 200, y: 200}, {x: 170, y: 200}, {x: 140, y: 200}, {x: 110, y: 200}];
+            direction = {x: 30, y: 0};
+            gameRunning = false;
+        }
+
+        document.addEventListener("keydown", event => {
+            if (event.key.startsWith("Arrow")) direction = {x: event.key === "ArrowLeft" ? -30 : event.key === "ArrowRight" ? 30 : 0, y: event.key === "ArrowUp" ? -30 : event.key === "ArrowDown" ? 30 : 0};
+        });
+    </script>
+</body>
+</html>
