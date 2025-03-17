@@ -149,7 +149,7 @@
                 document.getElementById('timer').innerText = timeLeft;
                 if (timeLeft === 0) {
                     clearInterval(timer);
-                    document.getElementById('result').innerText = '時間到！遊戲失敗！';
+                    document.getElementById('result').innerText = '時間到！挑戰失敗！再挑戰一次？';
                     document.getElementById('result').style.color = 'red';  // 將文字顏色設為紅色
                     document.getElementById('timer').style.display = 'none';  // 遊戲時間隱藏
                     // 遊戲結束後啟用重新開始按鈕
