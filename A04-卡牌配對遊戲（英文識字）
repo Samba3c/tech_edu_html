@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中英卡牌配對遊戲</title>
+    <style>
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f4f4; flex-direction: column; }
+        #game-container { width: 1200px; height: 500px; display: flex; border: 2px solid black; background: white; position: relative; }
+        .column { width: 50%; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .card { width: 150px; height: 50px; margin: 10px; display: flex; align-items: center; justify-content: center; background: lightblue; border: 2px solid #333; cursor: grab; font-size: 18px; transition: all 0.3s ease; }
+        .drop-zone { width: 150px; height: 50px; margin: 10px; background: lightgray; border: 2px dashed #333; display: flex; align-items: center; justify-content: center; font-size: 18px; position: relative; }
+        #result { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; font-weight: bold; display: none; }
+        #timer { font-size: 24px; margin-top: 10px; }
+        #level { font-size: 24px; margin-top: 20px; }
+        #next-level { font-size: 24px; padding: 10px 20px; background-color: lightblue; border: 2px solid #333; cursor: pointer; display: none; }
+        #restart { font-size: 24px; padding: 10px 20px; background-color: lightcoral; border: 2px solid #333; cursor: pointer; display: none; }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="english-column" class="column"></div>
+        <div id="chinese-column" class="column"></div>
+        <div id="result"></div>
+    </div>
+    <div id="timer">剩餘時間: 30 秒</div>
+    <div id="level">第 1 關</div>
+    <button id="next-level" onclick="nextLevel()">下一關</button>
+    <button id="restart" onclick="restartGame()">重新挑戰</button>
+    
+    <script>
+        const wordPairs = [
+            { en: "apple", zh: "蘋果" }, { en: "banana", zh: "香蕉" }, { en: "cat", zh: "貓" },
+            { en: "dog", zh: "狗" }, { en: "elephant", zh: "大象" }, { en: "fish", zh: "魚" },
+            { en: "grape", zh: "葡萄" }, { en: "house", zh: "房子" }, { en: "ice", zh: "冰" },
+            { en: "juice", zh: "果汁" }, { en: "kite", zh: "風箏" }, { en: "lion", zh: "獅子" },
+            { en: "monkey", zh: "猴子" }, { en: "nest", zh: "鳥巢" }, { en: "orange", zh: "橙子" },
+            { en: "pencil", zh: "鉛筆" }, { en: "queen", zh: "女王" }, { en: "rabbit", zh: "兔子" },
+            { en: "sun", zh: "太陽" }, { en: "tiger", zh: "老虎" }, { en: "umbrella", zh: "雨傘" },
+            { en: "violin", zh: "小提琴" }, { en: "whale", zh: "鯨魚" }, { en: "xylophone", zh: "木琴" },
+            { en: "yogurt", zh: "酸奶" }, { en: "zebra", zh: "斑馬" }, { en: "book", zh: "書" },
+            { en: "chair", zh: "椅子" }, { en: "desk", zh: "桌子" }, { en: "egg", zh: "雞蛋" }
+        ];
+
+        let selectedWords = [];
+        let matchedCount = 0;
+        let timeLeft = 30;
+        let timer;
+        let currentLevel = 1;
+        let isGameOver = false;
+
+        function startGame() {
+            selectedWords = wordPairs.sort(() => Math.random() - 0.5).slice(0, 4);
+            matchedCount = 0;
+            isGameOver = false;
+            document.getElementById("english-column").innerHTML = "";
+            document.getElementById("chinese-column").innerHTML = "";
+            document.getElementById("result").style.display = "none";
+            document.getElementById("next-level").style.display = "none"; // 隱藏下一關按鈕
+            document.getElementById("restart").style.display = "none"; // 隱藏重新挑戰按鈕
+
+            selectedWords.forEach((word, index) => {
+                let engCard = document.createElement("div");
+                engCard.className = "card";
+                engCard.textContent = word.en;
+                engCard.draggable = true;
+                engCard.id = "eng-" + index;
+                engCard.ondragstart = drag;
+                document.getElementById("english-column").appendChild(engCard);
+            });
+
+            let shuffledChinese = [...selectedWords].sort(() => Math.random() - 0.5);
+            shuffledChinese.forEach((word, index) => {
+                let dropZone = document.createElement("div");
+                dropZone.className = "drop-zone";
+                dropZone.textContent = word.zh;
+                dropZone.ondragover = allowDrop;
+                dropZone.ondrop = drop;
+                dropZone.dataset.pair = word.en;
+                document.getElementById("chinese-column").appendChild(dropZone);
+            });
+
+            document.getElementById("level").textContent = `第 ${currentLevel} 關`; // 顯示關卡
+            document.getElementById("timer").textContent = `剩餘時間: ${timeLeft} 秒`;
+
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById("timer").textContent = `剩餘時間: ${timeLeft} 秒`;
+                if (timeLeft <= 0) endGame(false);
+            }, 1000);
+        }
+
+        function allowDrop(event) {
+            if (isGameOver) return;
+            event.preventDefault();
+        }
+
+        function drag(event) {
+            if (isGameOver) return;
+            event.dataTransfer.setData("text", event.target.id);
+        }
+
+        function drop(event) {
+            if (isGameOver) return;
+            event.preventDefault();
+            let draggedId = event.dataTransfer.getData("text");
+            let draggedElement = document.getElementById(draggedId);
+            if (draggedElement.textContent === event.target.dataset.pair) {
+                event.target.textContent = draggedElement.textContent;
+                event.target.style.background = "lightgreen";
+                draggedElement.draggable = false;
+                draggedElement.style.opacity = "0.5";
+                matchedCount++;
+                if (matchedCount === 4) endGame(true);
+            } else {
+                draggedElement.style.transition = "transform 0.5s";
+                draggedElement.style.transform = "translateX(-200px)";
+                setTimeout(() => {
+                    draggedElement.style.transform = "translateX(0)";
+                }, 500);
+            }
+        }
+
+        function endGame(success) {
+            clearInterval(timer);
+            isGameOver = true;
+            let resultText = success ? "成功!" : "失敗!";
+            document.getElementById("result").textContent = resultText;
+            document.getElementById("result").style.display = "block";
+            if (success) {
+                document.getElementById("next-level").style.display = "block"; // 顯示下一關按鈕
+            } else {
+                document.getElementById("restart").style.display = "block"; // 顯示重新挑戰按鈕
+            }
+        }
+
+        function nextLevel() {
+            currentLevel++; // 過關後，關卡數字增加
+
+            // 根據關卡數來設定時間
+            if (currentLevel === 2) {
+                timeLeft = 25;
+            } else if (currentLevel === 3) {
+                timeLeft = 20;
+            } else if (currentLevel === 4) {
+                timeLeft = 15;
+            } else if (currentLevel === 5) {
+                timeLeft = 10;
+            } else if (currentLevel >= 6) {
+                timeLeft = 7;
+            }
+
+            startGame(); // 開始新一關
+        }
+
+        function restartGame() {
+            currentLevel = 1; // 重置關卡
+            timeLeft = 30; // 重置時間
+            startGame(); // 重新開始遊戲
+        }
+
+        startGame();
+    </script>
+</body>
+</html>
