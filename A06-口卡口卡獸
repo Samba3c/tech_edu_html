@@ -5,73 +5,128 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ASCII 恐龍 和 人形</title>
     <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+        }
+
         body {
             font-family: "MSung", "新細明體", serif;
             text-align: center;
-        }
-        .container {
+            background-color: #d3d3d3; /* 背景色設為灰色 */
             display: flex;
-            justify-content: center;
-            align-items: flex-end; /* 使兩個容器底部對齊 */
-            gap: 50px; /* 給恐龍和人形之間加點間距 */
+            justify-content: center; /* 水平居中 */
+            align-items: center; /* 垂直居中 */
         }
+
+        /* 固定大小的遊戲區域 */
+        #game-area {
+            width: 1200px;
+            height: 900px;
+            position: relative; /* 讓子元素可以使用絕對定位 */
+            background-color: #ffffff; /* 底圖設為白色 */
+            overflow: hidden;
+        }
+
+        /* 恐龍容器 */
         .dino-container {
-            display: inline-block;
+            position: absolute; /* 絕對定位 */
+            left: 50px; /* 初始位置 */
+            bottom: 50px; /* 固定位置 */
+            font-size: 48px;
+            line-height: 1;
             text-align: left;
             white-space: pre;
-            font-size: 48px; /* 調整恐龍的大小為兩倍 */
-            padding: 10px;
-            background-color: white; /* 底色改為白色 */
-            line-height: 0.9;
-            border: none; /* 取消邊框 */
+            background-color: transparent; /* 背景透明 */
+            padding: 0; /* 去掉內邊距 */
+            border: none; /* 去掉邊框 */
+            box-shadow: none; /* 去掉陰影 */
+            animation: move-dino 30s linear infinite; /* 30秒移動到人形 */
         }
+
+        @keyframes move-dino {
+            0% {
+                left: 50px; /* 初始位置 */
+            }
+            100% {
+                left: 1040px; /* 最終位置，接近人形的右側 */
+            }
+        }
+
+        /* 人形容器 */
         .human-container {
-            display: inline-block;
+            position: absolute; /* 絕對定位 */
+            top: 72%; /* 垂直居中 */
+            right: 10%; /* 靠近右邊 */
+            transform: translateY(-50%); /* 調整為正確的垂直居中 */
+            font-size: 24px;
+            line-height: 1;
             text-align: left;
             white-space: pre;
-            font-size: 24px; /* 保持人形的大小不變 */
-            padding: 10px;
-            background-color: white; /* 底色改為白色 */
-            line-height: 0.8;
-            border: none; /* 取消邊框 */
-            position: relative; /* 使用相對定位 */
-            top: -80px; /* 向上移動 20px */
+            background-color: transparent; /* 背景透明 */
+            padding: 0; /* 去掉內邊距 */
+            border: none; /* 去掉邊框 */
+            box-shadow: none; /* 去掉陰影 */
         }
+
         .toggle {
-            animation: toggle-animation 0.5s steps(1, start) infinite;
+            animation: toggle-animation 0.3s steps(1, start) infinite;
         }
         @keyframes toggle-animation {
-            0% { opacity: 1; }
+            0%, 100% { opacity: 1; }
             50% { opacity: 0; }
-            100% { opacity: 1; }
         }
 
         .rotate-90 {
             display: inline-block;
             transform: rotate(90deg);
         }
+
+        .toggle-hands {
+            display: inline-block;
+            position: relative;
+            animation: toggle-hands-animation 0.3s steps(1, start) infinite;
+        }
+
+        @keyframes toggle-hands-animation {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-2px); }
+        }
+
+        /* 適應小螢幕 */
+        @media (max-width: 600px) {
+            .container {
+                flex-direction: column; /* 小螢幕上下排列 */
+                align-items: center;
+            }
+            .human-container {
+                top: 0; /* 手機上不需要位移 */
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- 遊戲區 -->
+    <div id="game-area">
+        <!-- 恐龍容器 -->
         <div class="dino-container">
             <pre>
-     ⊙⊙    
+<span class="toggle-hands">     ⊙⊙    
     ▄▼▼▼▼▼
     █▲▲▲▲▲
    ▟███<span class="rotate-90">Ψ</span>
-  ▟████
-   <span class="toggle"> ▙</span> <span class="toggle" style="animation-delay: 0.25s;">▙</span>
-            </pre>
+  ▟████</span>
+   <span class="toggle"> ▙</span> <span class="toggle" style="animation-delay: 0.15s;">▙</span></pre>
         </div>
-        
+
+        <!-- 人形容器 -->
         <div class="human-container">
-            <pre>
-            
-     𖤫
-    ‹Ο‹
-   ︶）
-            </pre>
+            <pre><span class="toggle-hands">     Help ~
+ /⚇/</span>
+ <span class="toggle-hands"> █ </span>
+ <span class="toggle">ʃ </span><span class="toggle" style="animation-delay: 0.15s;">ʅ</span></pre>
         </div>
     </div>
 </body>
