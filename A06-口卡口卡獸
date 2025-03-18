@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASCII 恐龍 和 人形</title>
+    <style>
+        body {
+            font-family: "MSung", "新細明體", serif;
+            text-align: center;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end; /* 使兩個容器底部對齊 */
+            gap: 50px; /* 給恐龍和人形之間加點間距 */
+        }
+        .dino-container {
+            display: inline-block;
+            text-align: left;
+            white-space: pre;
+            font-size: 48px; /* 調整恐龍的大小為兩倍 */
+            padding: 10px;
+            background-color: white; /* 底色改為白色 */
+            line-height: 0.9;
+            border: none; /* 取消邊框 */
+        }
+        .human-container {
+            display: inline-block;
+            text-align: left;
+            white-space: pre;
+            font-size: 24px; /* 保持人形的大小不變 */
+            padding: 10px;
+            background-color: white; /* 底色改為白色 */
+            line-height: 0.8;
+            border: none; /* 取消邊框 */
+            position: relative; /* 使用相對定位 */
+            top: -80px; /* 向上移動 20px */
+        }
+        .toggle {
+            animation: toggle-animation 0.5s steps(1, start) infinite;
+        }
+        @keyframes toggle-animation {
+            0% { opacity: 1; }
+            50% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        .rotate-90 {
+            display: inline-block;
+            transform: rotate(90deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="dino-container">
+            <pre>
+     ⊙⊙    
+    ▄▼▼▼▼▼
+    █▲▲▲▲▲
+   ▟███<span class="rotate-90">Ψ</span>
+  ▟████
+   <span class="toggle"> ▙</span> <span class="toggle" style="animation-delay: 0.25s;">▙</span>
+            </pre>
+        </div>
+        
+        <div class="human-container">
+            <pre>
+            
+     𖤫
+    ‹Ο‹
+   ︶）
+            </pre>
+        </div>
+    </div>
+</body>
+</html>
