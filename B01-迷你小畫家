@@ -9,13 +9,13 @@
       font-family: Arial, sans-serif;
       margin: 0;
       display: flex;
-	  background-color: #f0f0f0; /* 這裡設定背景顏色 */
+      background-color: #f0f0f0; /* 這裡設定背景顏色 */
     }
     #tools {
       position: fixed;
       left: 0;
       top: 0;
-      width: 150px;
+      width: 250px;
       height: 100vh;
       background: #add8e6; /* 修改這裡的顏色 */
       padding: 10px;
@@ -25,46 +25,69 @@
       align-items: center;
     }
     canvas {
-      margin-left: 200px;
+      margin-left: 300px;
       margin-top: 40px;
       border: 1px solid #000;
     }
     button, input[type="file"] {
       padding: 10px;
-      font-size: 14px;
+      font-size: 24px;
       width: 100%;
     }
     .active {
       background-color: #ffa500 !important;
     }
     #title-btn {
-      font-size: 18px;
+      font-size: 24px;
       font-weight: bold;
       background-color: #4CAF50;
       color: white;
       border: none;
       cursor: pointer;
     }
+    label {
+      font-size: 24px; /* 修改這裡的字體大小 */
+    }
+    select, option {
+      font-size: 24px; /* 修改這裡的字體大小 */
+    }
+    #color-picker {
+      height: 50px; /* 調整高度 */
+      font-size: 24px; /* 調整字體大小 */
+      padding: 5px; /* 增加內邊距 */
+      width: 100%; /* 確保佔滿寬度 */
+    }
+
+    /* 新增樣式來設置水平線的外觀 */
+    hr {
+      width: 80%; /* 讓水平線只佔工具欄的一部分 */
+      border: 1px solid #000; /* 設置邊框顏色 */
+      margin: 10px 0; /* 設置上下間距 */
+    }
   </style>
 </head>
 <body>
   <div id="tools">
     <!-- 新增標題按鈕 -->
-    <button id="title-btn">🖌️ 迷你小畫家</button>
+    <button id="title-btn">🎨️ 迷你小畫家</button>
     <!-- 其他工具按鈕 -->
     <input type="file" id="upload-image" />
-    <button id="undo-btn">返回</button>
-    <button id="redo-btn">重做</button>
-    <input type="color" id="color-picker" value="#000000">
-    <label for="brush-size">畫筆大小:</label>
-    <input type="range" id="brush-size" min="1" max="10" value="5">
+    <button id="undo-btn">↩️ 返回</button>
+    <button id="redo-btn">↪️ 重做</button>
     <select id="brush-shape">
-      <option value="round">畫筆形狀:圓形</option>
-      <option value="square">畫筆形狀:正方形</option>
+      <option value="round">✒️畫筆形狀：圓形</option>
+      <option value="square">✒️畫筆形狀：正方形</option>
     </select>
-    <button id="fill-btn">油漆桶填色</button>
-    <button id="clear-btn">清除畫布</button>
-    <button id="save-btn">存檔</button>
+
+    <label for="brush-size">🖌️ 畫筆大小:</label>
+    <input type="range" id="brush-size" min="1" max="10" value="5">
+    <input type="color" id="color-picker" value="#000000">
+
+    <button id="fill-btn">🖍️ 油漆桶填色</button>
+    <button id="clear-btn">❌ 清除畫布</button>
+    <button id="save-btn">💾 下載存檔</button>
+    <!-- 新增水平線 -->
+    <hr />
     <button id="title-auther">程式作者：阿邦老師</button>
 
   </div>
@@ -84,6 +107,7 @@
     const colorPicker = document.getElementById('color-picker');
     const uploadImage = document.getElementById('upload-image');
     const titleBtn = document.getElementById('title-btn');
+    const titleAutherBtn = document.getElementById('title-auther');  // 這裡是程式作者按鈕的引用
 
     let painting = false;
     let currentColor = "#000000";
@@ -92,14 +116,20 @@
     let redoHistory = [];
     let uploadedImage = null;
     
+    const MAX_HISTORY = 5; // 設定歷史紀錄的最大次數
+
     ctx.fillStyle = "#fff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     function saveState() {
+      // 限制歷史紀錄最多保存 MAX_HISTORY 次
+      if (history.length >= MAX_HISTORY) {
+        history.shift(); // 移除最舊的紀錄
+      }
       redoHistory = [];
       history.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
     }
-    
+
     colorPicker.addEventListener('input', (e) => {
       currentColor = e.target.value;
       ctx.strokeStyle = currentColor;
@@ -220,6 +250,11 @@
         img.src = event.target.result;
       };
       reader.readAsDataURL(file);
+    });
+
+    // 當點擊"程式作者"按鈕時顯示 alert 視窗
+    titleAutherBtn.addEventListener('click', () => {
+      alert("這顆按鈕會召喚🧙‍♂️阿邦老師，\n千萬不能亂按！！");
     });
   </script>
 </body>
