@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASCII 恐龍 和 人形</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            font-family: "MSung", "新細明體", serif;
+            text-align: center;
+            background-color: #d3d3d3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #game-area {
+            width: 1200px;
+            height: 700px;
+            position: relative;
+            background-color: #ffffff;
+            overflow: hidden;
+        }
+
+        .rotate-funnel {
+            display: inline-block;
+            transform: rotate(90deg) scale(6); 
+        }
+
+        .dino-container {
+            position: absolute;
+            left: 50px;
+            bottom: -80px;
+            font-size: 48px;
+            line-height: 1;
+            text-align: left;
+            white-space: pre;
+            background-color: transparent;
+            padding: 0;
+            border: none;
+            box-shadow: none;
+            animation: move-dino 10s linear infinite; 
+        }
+
+        @keyframes move-dino {
+            0% {
+                left: 50px;
+            }
+            100% {
+                left: 940px;
+            }
+        }
+
+        .human-container {
+            position: absolute;
+            bottom: -120px;
+            right: 50px;
+            transform: translateY(-50%);
+            font-size: 24px;
+            line-height: 1;
+            text-align: left;
+            white-space: pre;
+            background-color: transparent;
+            padding: 0;
+            border: none;
+            box-shadow: none;
+        }
+
+        .toggle {
+            animation: toggle-animation 0.3s steps(1, start) infinite;
+        }
+
+        @keyframes toggle-animation {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .rotate-90 {
+            display: inline-block;
+            transform: rotate(90deg);
+        }
+
+        .toggle-hands {
+            display: inline-block;
+            position: relative;
+            animation: toggle-hands-animation 0.3s steps(1, start) infinite;
+        }
+
+        @keyframes toggle-hands-animation {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-2px); }
+        }
+
+        #game-over {
+            position: absolute;
+            top: 350px;
+            left: 600px;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            color: red;
+            font-weight: bold;
+            display: none;
+        }
+
+        #restart-btn {
+            position: absolute;
+            top: 450px;
+            left: 600px;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            font-size: 24px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: none;
+        }
+
+        #restart-btn:hover {
+            background-color: #45a049;
+        }
+
+        #distance-display {
+            position: absolute;
+            top: 10px;
+            left: 600px;
+            transform: translateX(-50%);
+            font-size: 24px;
+            color: black;
+            font-weight: bold;
+        }
+
+        #fruit-display {
+            position: absolute;
+            top: 150px;
+            left: 600px;
+            transform: translateX(-50%);
+            font-size: 36px;
+            color: blue;
+            font-weight: bold;
+        }
+
+        #fruit-input {
+            position: absolute;
+            top: 200px;
+            left: 600px;
+            transform: translateX(-50%);
+            font-size: 24px;
+            padding: 5px;
+            width: 200px;
+            text-align: center;
+        }
+
+        .apple {
+            position: absolute;
+            font-size: 36px;
+            color: red;
+            animation: dropApple 2s forwards;
+        }
+
+        @keyframes dropApple {
+            0% {
+                top: -50px;
+            }
+            100% {
+                top: 600px; 
+            }
+        }
+
+        #apple-distance-display {
+            position: absolute;
+            top: 70px;
+            left: 600px;
+            transform: translateX(-50%);
+            font-size: 24px;
+            color: green;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-area">
+        <div class="dino-container">
+            <pre>
+<span class="toggle-hands">     ⊙⊙    
+    ▄▼▼▼▼▼
+    █▲▲▲▲▲
+   ▟███<span class="rotate-90">Ψ</span>
+  ▟████</span>
+   <span class="toggle"> ▙</span> <span class="toggle" style="animation-delay: 0.15s;">▙</span></pre>
+        </div>
+
+        <div class="human-container">
+            <pre><span class="toggle-hands">     Help ~
+ /⚇/</span>
+ <span class="toggle-hands"> █ </span>
+ <span class="toggle">ʃ </span><span class="toggle" style="animation-delay: 0.15s;">ʅ</span></pre>
+        </div>
+
+        <div id="distance-display">距離: 0</div>
+        <div id="fruit-display">請輸入: </div>
+
+        <input type="text" id="fruit-input" placeholder="輸入水果名稱" />
+
+        <div id="game-over">遊戲結束</div>
+
+        <button id="restart-btn" onclick="restartGame()">重新開始</button>
+
+        <!-- 顯示蘋果和人形的距離 -->
+        <div id="apple-distance-display">蘋果與人形的距離: 0</div>
+    </div>
+
+    <script>
+        const dino = document.querySelector('.dino-container');
+        const human = document.querySelector('.human-container');
+        const gameOverMessage = document.getElementById('game-over');
+        const restartBtn = document.getElementById('restart-btn');
+        const distanceDisplay = document.getElementById('distance-display');
+        const fruitDisplay = document.getElementById('fruit-display');
+        const fruitInput = document.getElementById('fruit-input');
+        const appleDistanceDisplay = document.getElementById('apple-distance-display');  // 新增距離顯示
+
+        let dinoPosition = 50;
+        let isGameOver = false;
+
+        const fruits = [
+            "apple", "banana", "orange", "grape", "cherry", 
+            "mango", "pineapple", "peach", "strawberry", "watermelon",
+            "kiwi", "lemon", "pear", "plum", "papaya",
+            "apricot", "blueberry", "raspberry", "blackberry", "coconut"
+        ];
+
+        let currentFruit = "";
+        let isFruitCorrect = false;
+
+        function checkDistance() {
+            if (isGameOver) return;
+
+            const dinoRect = dino.getBoundingClientRect();
+            const humanRect = human.getBoundingClientRect();
+
+            const distance = dinoRect.right - humanRect.left;
+            distanceDisplay.textContent = `距離: ${Math.round(distance)} px`;
+
+            // 計算蘋果與人形的垂直距離
+            const apples = document.querySelectorAll('.apple');
+            apples.forEach(apple => {
+                const appleRect = apple.getBoundingClientRect();
+                const appleVerticalDistance = Math.abs(appleRect.top - humanRect.bottom); // 垂直距離
+                appleDistanceDisplay.textContent = `蘋果與人形的距離: ${Math.round(appleVerticalDistance)} px`;
+
+                // 如果蘋果與人形的距離小於 200，恐龍向後移動 50px
+                if (appleVerticalDistance < 200) {
+                    dinoPosition -= 200;
+                    dino.style.left = `${dinoPosition}px`;  // 更新恐龍位置
+                    apple.remove();  // 移除已掉落的蘋果
+                }
+            });
+
+            if (distance > 140) {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            isGameOver = true;
+            fruitInput.disabled = true;  // 禁用輸入框
+
+            dino.style.animation = 'none';
+            human.style.animation = 'none';
+
+            gameOverMessage.style.display = 'block'; 
+            restartBtn.style.display = 'block'; 
+        }
+
+        function restartGame() {
+            isGameOver = false;
+
+            dinoPosition = 50;
+            dino.style.left = `${dinoPosition}px`;
+            human.style.right = '50px';
+
+            dino.style.animation = 'move-dino 30s linear infinite';   
+            human.style.animation = '';
+
+            gameOverMessage.style.display = 'none';
+            restartBtn.style.display = 'none';
+            fruitInput.disabled = false;  
+
+            distanceDisplay.textContent = '距離: 0';
+        }
+
+        function updateFruitDisplay() {
+            if (isFruitCorrect) {
+                currentFruit = fruits[Math.floor(Math.random() * fruits.length)];
+                fruitDisplay.textContent = `水果: ${currentFruit}`;
+                isFruitCorrect = false; // Reset after showing new fruit
+            }
+        }
+
+        // 初始化顯示水果
+        currentFruit = fruits[Math.floor(Math.random() * fruits.length)];
+        fruitDisplay.textContent = `水果: ${currentFruit}`;
+
+        fruitInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter' && !isGameOver) {
+                if (fruitInput.value.trim().toLowerCase() === currentFruit.toLowerCase()) {
+                    isFruitCorrect = true; // 設置為正確，準備顯示下一個水果
+                    fruitInput.value = ''; // 清空輸入框
+                    updateFruitDisplay(); // 顯示下一個水果
+                    dropApple(); // 顯示掉落的🍎
+                }
+            }
+        });
+
+        function dropApple() {
+            const apple = document.createElement('div');
+            apple.classList.add('apple');
+            apple.textContent = '🍎';
+            apple.style.top = '2000px';   // 設定垂直位置
+            apple.style.left = '1020px'; // 設定水平位置            
+            document.getElementById('game-area').appendChild(apple);
+        }
+
+        setInterval(checkDistance, 100);
+    </script>
+</body>
+</html>
