@@ -31,13 +31,15 @@
         }
 
         .dino-container {
-            left: 100px;  /* 固定在左側 */
+            left: 100px;
             top: 350px;
+            transition: transform 0.25s ease-in-out;
         }
 
         .human-container {
-            left: 1050px; /* 固定在右側 */
+            left: 1050px;
             top: 580px;
+            transition: transform 0.15s ease-in-out;
         }
 
         .dino, .human {
@@ -101,20 +103,20 @@
         }
     </style>
 </head>
-<body>
+<body><div style="height: 30px;"></div>
     <div class="game-container">
-        <div class="dino-container">
+        <div class="dino-container" id="dinoContainer">
             <pre class="dino">
-    ⊙⊙     
+     ⊙⊙     
     ▄▼▼▼▼▼
     █▲▲▲▲▲
    ▟███<span class="rotated-psi">Ψ</span>
   ▟████ 
-   <span id="eye1">▙</span> <span id="eye2">▙</span>
+    <span id="eye1">▙</span> <span id="eye2">▙</span>
             </pre> 
         </div>
 
-        <div class="human-container">
+        <div class="human-container" id="humanContainer">
             <pre><span class="human">     Help ~ 
  /⚇/
   █
@@ -131,7 +133,40 @@
         const fruits = ["apple", "pear", "fig", "kiwi", "plum", "mango", "date", "lime", "lemon", "grape"];
         let fruitDisplay = document.getElementById("fruitDisplay");
         let userInput = document.getElementById("userInput");
-        let humanContainer = document.querySelector('.human-container');
+        let humanContainer = document.getElementById("humanContainer");
+        let dinoContainer = document.getElementById("dinoContainer");
+
+        let countdownContainer = document.createElement("div");
+        countdownContainer.style.position = "absolute";
+        countdownContainer.style.top = "50%";
+        countdownContainer.style.left = "50%";
+        countdownContainer.style.transform = "translate(-50%, -50%)";
+        countdownContainer.style.fontSize = "64px";
+        countdownContainer.style.fontWeight = "bold";
+        countdownContainer.style.color = "#333";
+        document.body.appendChild(countdownContainer);
+
+        userInput.disabled = true;
+
+        function startCountdown(callback) {
+            let countdown = 3;
+            countdownContainer.textContent = countdown;
+
+            let timer = setInterval(() => {
+                countdown--;
+                if (countdown > 0) {
+                    countdownContainer.textContent = countdown;
+                } else {
+                    countdownContainer.textContent = "GO!";
+                    setTimeout(() => {
+                        countdownContainer.style.display = "none";
+                        userInput.disabled = false;
+                        callback();
+                    }, 500);
+                    clearInterval(timer);
+                }
+            }, 1000);
+        }
 
         function getRandomFruit() {
             let randomIndex = Math.floor(Math.random() * fruits.length);
@@ -147,7 +182,7 @@
             let appleElement = document.createElement('div');
             appleElement.textContent = "🍎";
             appleElement.classList.add('apple');
-            
+
             let humanPosition = humanContainer.getBoundingClientRect();
             appleElement.style.left = `${humanPosition.left + humanPosition.width / 2 - 20}px`;
             document.body.appendChild(appleElement);
@@ -187,12 +222,32 @@
             setInterval(() => {
                 hand1.style.visibility = (hand1.style.visibility === 'visible') ? 'hidden' : 'visible';
                 hand2.style.visibility = (hand2.style.visibility === 'hidden') ? 'visible' : 'hidden';
+            }, 150);
+        }
+
+        function dinoJump() {
+            let up = true;
+            setInterval(() => {
+                dinoContainer.style.transform = up ? "translateY(-3px)" : "translateY(0)";
+                up = !up;
             }, 250);
         }
 
-        displayFruit();
-        toggleEyes();
-        toggleHands();
+        function humanJump() {
+            let up = true;
+            setInterval(() => {
+                humanContainer.style.transform = up ? "translateY(-2px)" : "translateY(0)";
+                up = !up;
+            }, 150);
+        }
+
+        startCountdown(() => {
+            displayFruit();
+            toggleEyes();
+            toggleHands();
+            dinoJump();
+            humanJump();
+        });
     </script>
 </body>
 </html>
