@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dino and Human Game</title>
+    <style>
+        body {
+            font-family: monospace, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .game-container {
+            width: 1200px;
+            height: 700px;
+            background-color: #f0f0f0;
+            position: relative;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            overflow: hidden;
+        }
+
+        .dino-container, .human-container {
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.25s ease-in-out;
+        }
+
+        .dino-container {
+            left: 0px;
+            top: 350px;
+        }
+
+        .human-container {
+            left: 350px;
+            top: 580px;
+        }
+
+        .dino, .human {
+            white-space: pre;
+            color: #333;
+        }
+
+        .dino {
+            font-size: 48px;
+            line-height: 1;
+        }
+
+        .rotated-psi {
+            display: inline-block;
+            transform: rotate(90deg);
+        }
+
+        .human {
+            color: #ff6347;
+            font-size: 20px;
+        }
+
+        .fruit-container {
+            position: absolute;
+            top: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 48px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .input-container {
+            position: absolute;
+            top: 180px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+        }
+
+        input {
+            font-size: 24px;
+            padding: 5px;
+            width: 200px;
+            text-align: center;
+        }
+
+        .hidden {
+            visibility: hidden;
+        }
+
+        @keyframes dropApple {
+            0% {
+                top: 400px;
+            }
+            100% {
+                top: 580px;
+            }
+        }
+
+        .apple {
+            position: absolute;
+            font-size: 32px;
+            animation: dropApple 0.5s linear forwards;
+        }
+
+        .distance-container {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div style="height: 30px;"></div>
+    <div class="game-container">
+        <div class="dino-container" id="dinoContainer">
+            <pre class="dino">
+     ⊙⊙     
+    ▄▼▼▼▼▼
+    █▲▲▲▲▲
+   ▟███<span class="rotated-psi">Ψ</span>
+  ▟████ 
+    <span id="eye1">▙</span> <span id="eye2">▙</span>
+            </pre> 
+        </div>
+
+        <div class="human-container" id="humanContainer">
+            <pre><span class="human">     Help ~ 
+ /⚇/
+  █
+ <span id="hand1">ʃ</span> <span id="hand2">ʅ</span></span></pre>
+        </div>
+    </div>
+
+    <div class="fruit-container" id="fruitDisplay"></div>
+    <div class="input-container">
+        <input type="text" id="userInput" placeholder="輸入水果字母">
+    </div>
+
+    <div class="distance-container" id="distanceDisplay">距離: 0</div>
+
+    <script>
+        const fruits = ["apple", "pear", "fig", "kiwi", "plum", "mango", "date", "lime", "lemon", "grape"];
+        let fruitDisplay = document.getElementById("fruitDisplay");
+        let userInput = document.getElementById("userInput");
+        let humanContainer = document.getElementById("humanContainer");
+        let dinoContainer = document.getElementById("dinoContainer");
+        let distanceDisplay = document.getElementById("distanceDisplay");
+
+        let countdownContainer = document.createElement("div");
+        countdownContainer.style.position = "absolute";
+        countdownContainer.style.top = "300px";
+        countdownContainer.style.left = "50%";
+        countdownContainer.style.transform = "translate(-50%, -50%)";
+        countdownContainer.style.fontSize = "64px";
+        countdownContainer.style.fontWeight = "bold";
+        countdownContainer.style.color = "#333";
+        document.body.appendChild(countdownContainer);
+
+        userInput.disabled = true;
+
+        function startCountdown(callback) {
+            let countdown = 3;
+            countdownContainer.textContent = countdown;
+
+            let timer = setInterval(() => {
+                countdown--;
+                if (countdown > 0) {
+                    countdownContainer.textContent = countdown;
+                } else {
+                    countdownContainer.textContent = "Run!";
+                    setTimeout(() => {
+                        countdownContainer.style.display = "none";
+                        userInput.disabled = false;
+                        callback();
+                    }, 2000);
+                    clearInterval(timer);
+                }
+            }, 1000);
+        }
+
+        function getRandomFruit() {
+            let randomIndex = Math.floor(Math.random() * fruits.length);
+            return fruits[randomIndex];
+        }
+
+        function displayFruit() {
+            let fruit = getRandomFruit();
+            fruitDisplay.textContent = fruit.toUpperCase();
+        }
+
+        let humanLeftPosition = 350;  // 初始位置
+
+        function dropApple() {
+            let appleElement = document.createElement('div');
+            appleElement.textContent = "🍎";
+            appleElement.classList.add('apple');
+
+            let humanPosition = humanContainer.getBoundingClientRect();
+            appleElement.style.left = `${humanPosition.left + humanPosition.width / 2 - 20}px`;
+            document.body.appendChild(appleElement);
+
+            appleElement.addEventListener('animationend', () => {
+                appleElement.remove();
+                // 當蘋果消失後更新 human-container 的位置
+                humanLeftPosition += 20;  // 增加 20px
+                humanContainer.style.left = `${humanLeftPosition}px`; // 更新位置
+            });
+        }
+
+        userInput.addEventListener("keypress", function (e) {
+            if (e.key === "Enter") {
+                let inputValue = userInput.value.trim().toLowerCase();
+                let currentFruit = fruitDisplay.textContent.toLowerCase();
+
+                if (inputValue === currentFruit) {
+                    dropApple();
+                    userInput.value = "";
+                    displayFruit();
+                }
+            }
+        });
+
+        function toggleEyes() {
+            let eye1 = document.getElementById("eye1");
+            let eye2 = document.getElementById("eye2");
+
+            setInterval(() => {
+                eye1.classList.toggle("hidden");
+                setTimeout(() => {
+                    eye2.classList.toggle("hidden");
+                }, 250);
+            }, 250);
+        }
+
+        function toggleHands() {
+            let hand1 = document.getElementById("hand1");
+            let hand2 = document.getElementById("hand2");
+
+            setInterval(() => {
+                hand1.classList.toggle("hidden");
+                setTimeout(() => {
+                    hand2.classList.toggle("hidden");
+                }, 150);
+            }, 150);
+        }
+
+        function dinoMove() {
+            let leftPosition = 0;
+            let interval = setInterval(() => {
+                if (leftPosition < 940) {
+                    leftPosition += 0.3;
+                    dinoContainer.style.left = leftPosition + 'px';
+                } else {
+                    clearInterval(interval);
+                }
+            }, 16);
+        }
+
+        function humanMove() {
+            let interval = setInterval(() => {
+                if (humanLeftPosition < 1250) {
+                    humanLeftPosition += 0.2; // 每次移動 0.2px
+                    humanContainer.style.left = `${humanLeftPosition}px`;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 16);
+        }
+
+        function updateDistance() {
+            let dinoPosition = dinoContainer.getBoundingClientRect();
+            let humanPosition = humanContainer.getBoundingClientRect();
+            let distance = Math.abs(dinoPosition.left - humanPosition.left);
+            distanceDisplay.textContent = `距離: ${distance.toFixed(2)}px`;
+        }
+
+        // 讓恐龍跳躍
+        function dinoJump() {
+            let up = true;
+            setInterval(() => {
+                dinoContainer.style.transform = up ? "translateY(-8px)" : "translateY(0)";
+                up = !up;
+            }, 250);
+        }
+
+        // 讓人形角色跳躍
+        function humanJump() {
+            let up = true;
+            setInterval(() => {
+                humanContainer.style.transform = up ? "translateY(-3px)" : "translateY(0)";
+                up = !up;
+            }, 150);
+        }
+
+        function startMovement() {
+            setTimeout(() => {
+                dinoMove();
+                humanMove();
+                dinoJump(); // 開始恐龍跳躍
+                humanJump(); // 開始人形角色跳躍
+            }, 1000);
+
+            displayFruit();
+            toggleEyes();
+            toggleHands();
+            setInterval(updateDistance, 100);
+        }
+
+        startCountdown(() => {
+            startMovement();
+        });
+    </script>
+</body>
+</html>
