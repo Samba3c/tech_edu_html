@@ -11,6 +11,7 @@
             padding: 0;
         }
 
+        /* 遊戲容器 */
         .game-container {
             width: 1200px;
             height: 700px;
@@ -23,6 +24,7 @@
             overflow: hidden;
         }
 
+        /* 恐龍和人形角色容器 */
         .dino-container, .human-container {
             position: absolute;
             display: flex;
@@ -41,14 +43,15 @@
             top: 580px;
         }
 
+        /* 角色（恐龍與人形）文字 */
         .dino, .human {
             white-space: pre;
-            color: #333;
         }
 
         .dino {
             font-size: 48px;
             line-height: 1;
+            color: #000000;
         }
 
         .rotated-psi {
@@ -57,10 +60,11 @@
         }
 
         .human {
-            color: #ff6347;
+            color:#EA7500;
             font-size: 20px;
         }
 
+        /* 水果顯示容器 */
         .fruit-container {
             position: absolute;
             top: 120px;
@@ -71,6 +75,7 @@
             font-weight: bold;
         }
 
+        /* 用戶輸入框容器 */
         .input-container {
             position: absolute;
             top: 180px;
@@ -90,6 +95,7 @@
             visibility: hidden;
         }
 
+        /* 蘋果掉落動畫 */
         @keyframes dropApple {
             0% {
                 top: 400px;
@@ -105,15 +111,71 @@
             animation: dropApple 0.5s linear forwards;
         }
 
+        /* 距離顯示容器 */
         .distance-container {
             position: absolute;
-            bottom: 20px;
+            top: 730px;
             left: 50%;
             transform: translateX(-50%);
             font-size: 24px;
             font-weight: bold;
             color: #333;
         }
+
+        /* 山脈容器 */
+        .mountain-container {
+            position: absolute;
+            right: 0px;
+            top: 500px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .mountain {
+            color: #613030	;
+            font-size: 20px;
+        }
+
+        /* 摇晃動畫 */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* 給輸入框應用搖晃效果 */
+        .shake {
+            animation: shake 0.3s ease-in-out;
+        }
+
+        .restart-btn {
+            position: absolute;
+            top: 300px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            font-size: 24px;
+            background-color: #E800E8;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+		#countdownContainer {
+    color: #0000E3;
+}
+
+.fruit-container {
+    position: absolute;
+    top: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 48px;
+    color: #00A600;  /* 更新顏色為 #00A600 */
+    font-weight: bold;
+}
     </style>
 </head>
 <body>
@@ -136,6 +198,18 @@
   █
  <span id="hand1">ʃ</span> <span id="hand2">ʅ</span></span></pre>
         </div>
+		
+        <div class="mountain-container" id="mountainContainer">
+            <pre><span class="mountain">    
+    █████ 
+   ███████
+  ████████
+ █      ██
+ ▌       █
+▌        █
+▌        █
+   </span></pre>
+        </div>
     </div>
 
     <div class="fruit-container" id="fruitDisplay"></div>
@@ -143,7 +217,7 @@
         <input type="text" id="userInput" placeholder="輸入水果字母">
     </div>
 
-    <div class="distance-container" id="distanceDisplay">距離: 0</div>
+    <div class="distance-container" id="distanceDisplay">距離: 0</div> 
 
     <script>
         const fruits = ["apple", "pear", "fig", "kiwi", "plum", "mango", "date", "lime", "lemon", "grape"];
@@ -161,9 +235,18 @@
         countdownContainer.style.fontSize = "64px";
         countdownContainer.style.fontWeight = "bold";
         countdownContainer.style.color = "#333";
+		countdownContainer.style.color = "#0000E3";
         document.body.appendChild(countdownContainer);
 
+        let restartButton = document.createElement('button');
+        restartButton.textContent = "Restart";
+        restartButton.classList.add('restart-btn');
+        document.body.appendChild(restartButton);
+        restartButton.style.display = "none";
+
         userInput.disabled = true;
+
+        let isGameOver = false; // 這是用來判斷遊戲是否結束
 
         function startCountdown(callback) {
             let countdown = 3;
@@ -171,15 +254,15 @@
 
             let timer = setInterval(() => {
                 countdown--;
-                if (countdown > 0) {
+                if (countdown > -1) {
                     countdownContainer.textContent = countdown;
                 } else {
-                    countdownContainer.textContent = "Run!";
+                    countdownContainer.textContent = "Run !!";
                     setTimeout(() => {
                         countdownContainer.style.display = "none";
                         userInput.disabled = false;
                         callback();
-                    }, 2000);
+                    }, 1000);
                     clearInterval(timer);
                 }
             }, 1000);
@@ -214,6 +297,7 @@
             });
         }
 
+        // 在用戶輸入錯誤時搖晃輸入框
         userInput.addEventListener("keypress", function (e) {
             if (e.key === "Enter") {
                 let inputValue = userInput.value.trim().toLowerCase();
@@ -223,6 +307,14 @@
                     dropApple();
                     userInput.value = "";
                     displayFruit();
+                } else {
+                    // 如果輸入錯誤，添加搖晃效果
+                    userInput.classList.add("shake");
+
+                    // 動畫完成後移除搖晃效果
+                    setTimeout(() => {
+                        userInput.classList.remove("shake");
+                    }, 300); // 動畫時長為300ms
                 }
             }
         });
@@ -251,25 +343,34 @@
             }, 150);
         }
 
+        let dinoMoveInterval;
+        let humanMoveInterval;
+
         function dinoMove() {
             let leftPosition = 0;
-            let interval = setInterval(() => {
-                if (leftPosition < 940) {
+            dinoMoveInterval = setInterval(() => {
+                if (leftPosition < 900 && !isGameOver) {
                     leftPosition += 0.3;
                     dinoContainer.style.left = leftPosition + 'px';
                 } else {
-                    clearInterval(interval);
+                    clearInterval(dinoMoveInterval);
+                    if (!isGameOver) {
+                        gameWon(); // 恐龍到達 900px，顯示成功逃脫
+                    }
                 }
             }, 16);
         }
 
         function humanMove() {
-            let interval = setInterval(() => {
-                if (humanLeftPosition < 1250) {
+            humanMoveInterval = setInterval(() => {
+                if (humanLeftPosition < 1120 && !isGameOver) {
                     humanLeftPosition += 0.2; // 每次移動 0.2px
                     humanContainer.style.left = `${humanLeftPosition}px`;
                 } else {
-                    clearInterval(interval);
+                    clearInterval(humanMoveInterval);
+                    if (!isGameOver) {
+                        userInput.disabled = true; // 禁用輸入框
+                    }
                 }
             }, 16);
         }
@@ -278,7 +379,11 @@
             let dinoPosition = dinoContainer.getBoundingClientRect();
             let humanPosition = humanContainer.getBoundingClientRect();
             let distance = Math.abs(dinoPosition.left - humanPosition.left);
-            distanceDisplay.textContent = `距離: ${distance.toFixed(2)}px`;
+            let distanceAfterSubtract = Math.floor(distance) - 200;  // 取整數並減去 200
+    distanceDisplay.textContent = `距離: ${distanceAfterSubtract}`;  // 顯示更新後的距離
+            if (distance < 200 && !isGameOver) {
+                gameLost(); // 距離小於200，顯示失敗
+            }
         }
 
         // 讓恐龍跳躍
@@ -299,22 +404,67 @@
             }, 150);
         }
 
-        function startMovement() {
-            setTimeout(() => {
-                dinoMove();
-                humanMove();
-                dinoJump(); // 開始恐龍跳躍
-                humanJump(); // 開始人形角色跳躍
-            }, 1000);
+        function gameLost() {
+            isGameOver = true; // 設置遊戲結束
+            // 顯示“逃脫失敗”信息
+            let gameLostMessage = document.createElement('div');
+            gameLostMessage.textContent = "逃脫失敗 ... ...";
+            gameLostMessage.style.fontSize = "36px";
+            gameLostMessage.style.fontWeight = "bold";
+            gameLostMessage.style.color = "	#CE0000";
+            gameLostMessage.style.position = "absolute";
+            gameLostMessage.style.top = "250px";
+            gameLostMessage.style.left = "50%";
+            gameLostMessage.style.transform = "translateX(-50%)";
+            document.body.appendChild(gameLostMessage);
 
-            displayFruit();
-            toggleEyes();
-            toggleHands();
-            setInterval(updateDistance, 100);
+            // 停止所有移動
+            clearInterval(dinoMoveInterval);
+            clearInterval(humanMoveInterval);
+
+            // 禁用輸入框
+            userInput.disabled = true;
+
+            // 顯示“Restart”按鈕
+            restartButton.style.display = "inline-block";
         }
 
+        function gameWon() {
+            isGameOver = true; // 設置遊戲結束
+            // 顯示“成功逃脫”信息
+            let gameWonMessage = document.createElement('div');
+            gameWonMessage.textContent = "成功逃脫！";
+            gameWonMessage.style.fontSize = "36px";
+            gameWonMessage.style.fontWeight = "bold";
+            gameWonMessage.style.color = "#32cd32";
+            gameWonMessage.style.position = "absolute";
+            gameWonMessage.style.top = "250px";
+            gameWonMessage.style.left = "50%";
+            gameWonMessage.style.transform = "translateX(-50%)";
+            document.body.appendChild(gameWonMessage);
+
+            // 停止所有移動
+            clearInterval(dinoMoveInterval);
+            clearInterval(humanMoveInterval);
+
+            // 顯示“Restart”按鈕
+            restartButton.style.display = "inline-block";
+        }
+
+        restartButton.addEventListener('click', () => {
+            // 重新載入遊戲
+            window.location.reload();
+        });
+
         startCountdown(() => {
-            startMovement();
+            dinoMove();  // 開始恐龍移動
+            humanMove(); // 開始人形角色移動
+            dinoJump();  // 開始恐龍跳躍
+            humanJump(); // 開始人形跳躍
+            toggleEyes();
+            toggleHands();
+            displayFruit();
+            setInterval(updateDistance, 16);  // 每16毫秒更新一次距離
         });
     </script>
 </body>
