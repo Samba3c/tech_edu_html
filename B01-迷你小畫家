@@ -72,7 +72,7 @@
     <!-- 新增標題按鈕 -->
     <button id="title-btn">🎨️ 迷你小畫家</button>
     <!-- 其他工具按鈕 -->
-    <input type="file" id="upload-image" />
+    <input type="file" id="upload-image"  accept="image/*"/>
     <button id="undo-btn">↩️ 返回</button>
     <button id="redo-btn">↪️ 重做</button>
     <select id="brush-shape">
@@ -81,7 +81,7 @@
     </select>
 
     <label for="brush-size">🖌️ 畫筆大小:</label>
-    <input type="range" id="brush-size" min="1" max="10" value="5">
+    <input type="range" id="brush-size" min="1" max="15" value="5">
     <input type="color" id="color-picker" value="#000000">
 
     <button id="fill-btn">🖍️ 油漆桶填色</button>
@@ -89,7 +89,7 @@
     <button id="save-btn">💾 下載存檔</button>
     <!-- 新增水平線 -->
     <hr />
-    <button id="title-auther">程式作者：阿邦老師</button>
+    <button id="title-auther">程式作者：阿邦老師 Ver.20250328</button>
 
   </div>
 
@@ -137,31 +137,52 @@
       ctx.fillStyle = currentColor;
     });
 
-    canvas.addEventListener('mousedown', (e) => {
-      saveState();
-      if (filling) {
-        fillCanvas(e.offsetX, e.offsetY);
-      } else {
-        painting = true;
-        ctx.beginPath();
-      }
-    });
+canvas.addEventListener('mousedown', (e) => {
+  saveState();
+  if (filling) {
+    fillCanvas(e.offsetX, e.offsetY);
+  } else {
+    painting = true;
+    ctx.beginPath();
+    ctx.moveTo(e.offsetX, e.offsetY); // 設定起點
+  }
+});
 
     canvas.addEventListener('mouseup', () => {
       painting = false;
       ctx.beginPath();
     });
 
-    canvas.addEventListener('mousemove', (e) => {
-      if (!painting) return;
-      ctx.lineWidth = brushSize.value;
-      ctx.lineCap = brushShape.value;
-      ctx.strokeStyle = currentColor;
-      ctx.lineTo(e.offsetX, e.offsetY);
+canvas.addEventListener('mousemove', (e) => {
+  if (!painting) return;
+
+  // 確保畫筆只在畫布範圍內繪製
+  const bounds = canvas.getBoundingClientRect();
+  const mouseX = e.clientX - bounds.left;
+  const mouseY = e.clientY - bounds.top;
+
+  // 檢查滑鼠是否在畫布範圍內
+  if (mouseX < 0 || mouseX > canvas.width || mouseY < 0 || mouseY > canvas.height) {
+    painting = false; // 停止繪製
+    return;
+  }
+
+  requestAnimationFrame(() => {
+    ctx.lineWidth = brushSize.value;
+    ctx.lineCap = brushShape.value;
+    ctx.strokeStyle = currentColor;
+
+    if (brushShape.value === 'round') {
+      ctx.lineTo(mouseX, mouseY);
       ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(e.offsetX, e.offsetY);
-    });
+    } else if (brushShape.value === 'square') {
+      ctx.fillStyle = currentColor;
+      ctx.fillRect(mouseX, mouseY, brushSize.value, brushSize.value);
+    }
+  });
+});
+
+
 
     clearBtn.addEventListener('click', () => {
       saveState();
@@ -170,11 +191,11 @@
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     });
 
-    fillBtn.addEventListener('click', () => {
-      filling = !filling;
-      fillBtn.classList.toggle('active', filling);
-      fillBtn.textContent = filling ? '停止填色' : '油漆桶填色';
-    });
+fillBtn.addEventListener('click', () => {
+  filling = !filling;
+  fillBtn.classList.toggle('active');
+  fillBtn.textContent = filling ? '🛑 停止填色' : '🖍️ 油漆桶填色';
+});
 
     undoBtn.addEventListener('click', () => {
       if (history.length > 0) {
@@ -199,30 +220,34 @@
       link.click();
     });
 
-    function fillCanvas(x, y) {
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const pixels = imageData.data;
-      const targetIndex = (y * canvas.width + x) * 4;
-      const targetColor = [pixels[targetIndex], pixels[targetIndex + 1], pixels[targetIndex + 2], pixels[targetIndex + 3]];
-      const fillColor = hexToRgb(currentColor);
-      if (colorsMatch(targetColor, fillColor)) return;
-      
-      const stack = [[x, y]];
-      while (stack.length) {
-        const [cx, cy] = stack.pop();
-        const index = (cy * canvas.width + cx) * 4;
-        if (!colorsMatch([pixels[index], pixels[index+1], pixels[index+2], pixels[index+3]], targetColor)) continue;
-        pixels[index] = fillColor.r;
-        pixels[index + 1] = fillColor.g;
-        pixels[index + 2] = fillColor.b;
-        pixels[index + 3] = 255;
-        if (cx > 0) stack.push([cx - 1, cy]);
-        if (cx < canvas.width - 1) stack.push([cx + 1, cy]);
-        if (cy > 0) stack.push([cx, cy - 1]);
-        if (cy < canvas.height - 1) stack.push([cx, cy + 1]);
-      }
-      ctx.putImageData(imageData, 0, 0);
-    }
+function fillCanvas(x, y) {
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const pixels = imageData.data;
+  const targetIndex = (y * canvas.width + x) * 4;
+  const targetColor = [pixels[targetIndex], pixels[targetIndex + 1], pixels[targetIndex + 2], pixels[targetIndex + 3]];
+  const fillColor = hexToRgb(currentColor);
+  if (colorsMatch(targetColor, fillColor)) return;
+
+  let stack = [[x, y]];
+  let visited = new Set();
+  while (stack.length) {
+    let [cx, cy] = stack.pop();
+    let index = (cy * canvas.width + cx) * 4;
+    if (visited.has(index)) continue;
+    visited.add(index);
+
+    if (!colorsMatch([pixels[index], pixels[index + 1], pixels[index + 2], pixels[index + 3]], targetColor)) continue;
+
+    pixels[index] = fillColor.r;
+    pixels[index + 1] = fillColor.g;
+    pixels[index + 2] = fillColor.b;
+    pixels[index + 3] = 255;
+
+    stack.push([cx - 1, cy], [cx + 1, cy], [cx, cy - 1], [cx, cy + 1]);
+  }
+  ctx.putImageData(imageData, 0, 0);
+}
+
 
     function hexToRgb(hex) {
       const r = parseInt(hex.slice(1, 3), 16);
