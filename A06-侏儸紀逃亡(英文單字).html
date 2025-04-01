@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dino and Human Game</title>
+    <style>
+        body {
+            font-family: monospace, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 遊戲容器 */
+        .game-container {
+            width: 1200px;
+            height: 700px;
+            background-color: #f0f0f0;
+            position: relative;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            overflow: hidden;
+        }
+
+        /* 恐龍和人形角色容器 */
+        .dino-container, .human-container {
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.25s ease-in-out;
+        }
+        /* 角色（恐龍與人形）文字 */
+        .dino, .human {
+            white-space: pre;
+        }
+
+        .dino-container {
+            left: 0px;
+            top: 350px;
+        }
+        .dino {
+            font-size: 48px;
+            line-height: 1;
+            color: #000000;
+        }
+
+        .human-container {
+            left: 350px;
+            top: 580px;
+        }
+        .human {
+            color:#EA7500;
+            font-size: 20px;
+        }
+		
+        /* 山脈容器 */
+        .mountain-container {
+            position: absolute;
+            right: 0px;
+            top: 500px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .mountain {
+            color: #613030	;
+            font-size: 20px;
+        }
+
+
+
+        .rotated-psi {
+            display: inline-block;
+            transform: rotate(90deg);
+        }
+
+        /* 英文單字顯示容器 */
+        .fruit-container {
+            position: absolute;
+            top: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 48px;
+            color: #00A600;  /* 更新顏色為 #00A600 */
+            font-weight: bold;
+        }
+
+        .fruit-container .chinese {
+            color: #006400;  /* 更深的綠色 */
+        }
+
+        /* 用戶輸入框容器 */
+        .input-container {
+            position: absolute;
+            top: 180px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+        }
+
+        input {
+            font-size: 24px;
+            padding: 5px;
+            width: 200px;
+            text-align: center;
+        }
+
+        .hidden {
+            visibility: hidden;
+        }
+
+        /* 蘋果掉落動畫 */
+        @keyframes dropApple {
+            0% {
+                top: 400px;
+            }
+            100% {
+                top: 580px;
+            }
+        }
+
+        .apple {
+            position: absolute;
+            font-size: 32px;
+            animation: dropApple 0.5s linear forwards;
+        }
+
+        /* 距離顯示容器 */
+        .distance-container {
+            position: absolute;
+            top: 780px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            font-weight: bold;
+            color: #FFF;
+        }
+
+
+        /* 摇晃動畫 */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* 給輸入框應用搖晃效果 */
+        .shake {
+            animation: shake 0.3s ease-in-out;
+        }
+
+        .restart-btn {
+            position: absolute;
+            top: 300px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            font-size: 24px;
+            background-color: #E800E8;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+		#countdownContainer {
+    color: #0000E3;
+}
+    </style>
+</head>
+<body>
+    <div style="height: 30px;"></div>
+    <div class="game-container">
+        <div class="dino-container" id="dinoContainer">
+            <pre class="dino">
+     ⊙⊙     
+    ▄▼▼▼▼▼
+    █▲▲▲▲▲
+   ▟███<span class="rotated-psi">Ψ</span>
+  ▟████ 
+    <span id="eye1">▙</span> <span id="eye2">▙</span>
+            </pre> 
+        </div>
+
+        <div class="human-container" id="humanContainer">
+            <pre><span class="human">     Help ~ 
+ /⚇/
+  █
+ <span id="hand1">ʃ</span> <span id="hand2">ʅ</span></span></pre>
+        </div>
+		
+        <div class="mountain-container" id="mountainContainer">
+            <pre><span class="mountain">    
+    █████ 
+   ███████
+  ████████
+ █      ██
+ ▌       █
+▌        █
+▌        █
+   </span></pre>
+        </div>
+    </div>
+
+<div class="fruit-container" id="fruitDisplay"></div>
+    <div class="input-container">
+        <input type="text" id="userInput" placeholder="輸入英文">
+    </div>
+<div style="text-align: center; font-size: 18px; padding-top: 20px;">
+    程式作者：老師 Ver.20250401
+</div>
+    <div class="distance-container" id="distanceDisplay">距離: 0</div> 
+
+    <script>
+const fruits = [
+    {english: "apple", chinese: "蘋果"},
+    {english: "monkey", chinese: "猴子"},
+{english: "gorilla", chinese: "大猩猩"},
+{english: "dog", chinese: "狗"},
+{english: "fox", chinese: "狐狸"},
+{english: "raccoon", chinese: "浣熊"},
+{english: "cat", chinese: "貓"},
+{english: "lion", chinese: "獅子"},
+{english: "tiger", chinese: "老虎"},
+{english: "leopard", chinese: "豹"},
+{english: "moose", chinese: "麋鹿"},
+{english: "donkey", chinese: "驢子"},
+{english: "horse", chinese: "馬"},
+{english: "zebra", chinese: "斑馬"},
+{english: "deer", chinese: "鹿"},
+{english: "bison", chinese: "野牛"},
+{english: "cow", chinese: "牛"},
+{english: "pig", chinese: "豬"},
+{english: "sheep", chinese: "綿羊"},
+{english: "goat", chinese: "山羊"},
+{english: "camel", chinese: "駱駝"},
+{english: "alpaca", chinese: "羊駝"},
+{english: "giraffe", chinese: "長頸鹿"},
+{english: "elephant", chinese: "大象"},
+{english: "rhino", chinese: "犀牛"},
+{english: "hippopotamus", chinese: "河馬"},
+{english: "mouse", chinese: "老鼠"},
+{english: "rabbit", chinese: "兔子"},
+{english: "squirrel", chinese: "花栗鼠"},
+{english: "beaver", chinese: "海狸"},
+{english: "hedgehog", chinese: "刺蝟"},
+{english: "bat", chinese: "蝙蝠"},
+{english: "bear", chinese: "熊"},
+{english: "polar bear", chinese: "北極熊"},
+{english: "koala", chinese: "無尾熊"},
+{english: "panda", chinese: "貓熊"},
+{english: "sloth", chinese: "樹懶"},
+{english: "otter", chinese: "水獺"},
+{english: "skunk", chinese: "臭鼬"},
+{english: "kangaroo", chinese: "袋鼠"},
+{english: "badger", chinese: "獾"},
+{english: "turkey", chinese: "火雞"},
+{english: "rooster", chinese: "公雞"},
+{english: "chick", chinese: "小雞"},
+{english: "penguin", chinese: "企鵝"},
+{english: "dove", chinese: "鴿子"},
+{english: "eagle", chinese: "老鷹"},
+{english: "duck", chinese: "綠頭鴨"},
+{english: "swans", chinese: "天鵝"},
+{english: "owl", chinese: "貓頭鷹"},
+{english: "dodo", chinese: "渡渡鳥"},
+{english: "feather", chinese: "羽毛"},
+{english: "flamingo", chinese: "紅鶴"},
+{english: "peacock", chinese: "孔雀"},
+{english: "parrot", chinese: "鸚鵡"},
+{english: "crow", chinese: "烏鴉"},
+{english: "goose", chinese: "鵝"},
+{english: "phoenix", chinese: "鳳凰"},
+{english: "crocodile", chinese: "鱷魚"},
+{english: "turtle", chinese: "烏龜"},
+{english: "lizard", chinese: "蜥蜴"},
+{english: "snake", chinese: "蛇"},
+{english: "dinosaur", chinese: "恐龍"},
+{english: "whale", chinese: "鯨魚"},
+{english: "dolphin", chinese: "海豚"},
+{english: "seal", chinese: "海豹"},
+{english: "fish", chinese: "魚"},
+{english: "pufferfish", chinese: "河豚"},
+{english: "shark", chinese: "鯊魚"},
+{english: "octopus", chinese: "章魚"},
+{english: "clam", chinese: "螺"},
+{english: "coral", chinese: "珊瑚"},
+{english: "jellyfish", chinese: "水母"},
+{english: "slug", chinese: "蝸牛"},
+{english: "butterfly", chinese: "蝴蝶"},
+{english: "insect", chinese: "蟲子"},
+{english: "ant", chinese: "螞蟻"},
+{english: "bee", chinese: "蜜蜂"},
+{english: "beetle", chinese: "甲蟲"},
+{english: "ladybug", chinese: "瓢蟲"},
+{english: "cricket", chinese: "蟋蟀"},
+{english: "cockroach", chinese: "蟑螂"},
+{english: "spider", chinese: "蜘蛛"},
+{english: "spiderweb", chinese: "蜘蛛網"},
+{english: "scorpion", chinese: "蠍子"},
+{english: "mosquito", chinese: "蚊子"},
+{english: "fly", chinese: "蒼蠅"},
+{english: "earthworm", chinese: "蚯蚓"},
+{english: "cherry blossom", chinese: "櫻花"},
+{english: "lotus", chinese: "蓮花"},
+{english: "rose", chinese: "玫瑰"},
+{english: "sunflower", chinese: "向日葵"},
+{english: "flower", chinese: "花"},
+{english: "tulip", chinese: "鬱金香"},
+{english: "hyacinth", chinese: "風信子"},
+{english: "sapling", chinese: "樹苗"},
+{english: "potted plant", chinese: "盆栽"},
+{english: "tree", chinese: "樹木"},
+{english: "palm tree", chinese: "棕櫚樹"},
+{english: "cactus", chinese: "仙人掌"},
+{english: "grass", chinese: "稻米"},
+{english: "bird nest", chinese: "鳥巢"},
+{english: "mushroom", chinese: "蘑菇"},
+{english: "grape", chinese: "葡萄"},
+{english: "cantaloupe", chinese: "香瓜"},
+{english: "watermelon", chinese: "西瓜"},
+{english: "orange", chinese: "柑橘"},
+{english: "lemon", chinese: "檸檬"},
+{english: "banana", chinese: "香蕉"},
+{english: "pineapple", chinese: "鳳梨"},
+{english: "mango", chinese: "芒果"},
+{english: "apple", chinese: "蘋果"},
+{english: "pear", chinese: "梨子"},
+{english: "peach", chinese: "桃子"},
+{english: "cherry", chinese: "櫻桃"},
+{english: "strawberry", chinese: "草莓"},
+{english: "blueberry", chinese: "藍莓"},
+{english: "kiwi", chinese: "奇異果"},
+{english: "tomato", chinese: "番茄"},
+{english: "avocado", chinese: "酪梨"},
+{english: "eggplant", chinese: "茄子"},
+{english: "potato", chinese: "馬鈴薯"},
+{english: "carrot", chinese: "紅蘿蔔"},
+{english: "corn", chinese: "玉米"},
+{english: "chili", chinese: "辣椒"},
+{english: "bell pepper", chinese: "甜椒"},
+{english: "cucumber", chinese: "黃瓜"},
+{english: "vegetables", chinese: "蔬菜"},
+{english: "broccoli", chinese: "花椰菜"},
+{english: "garlic", chinese: "大蒜"},
+{english: "onion", chinese: "洋蔥"},
+{english: "peanut", chinese: "花生"},
+{english: "beans", chinese: "豆子"},
+{english: "chestnut", chinese: "栗子"},
+{english: "ginger", chinese: "薑"},
+{english: "pod", chinese: "豆莢"},
+{english: "bread", chinese: "麵包"},
+{english: "bagel", chinese: "貝果"},
+{english: "pancake", chinese: "鬆餅"},
+{english: "cheese", chinese: "乳酪"},
+{english: "steak", chinese: "牛排"},
+{english: "bacon", chinese: "培根"},
+{english: "burger", chinese: "漢堡"},
+{english: "french fries", chinese: "薯條"},
+{english: "pizza", chinese: "披薩"},
+{english: "hot dog", chinese: "熱狗"},
+{english: "sandwich", chinese: "三明治"},
+{english: "egg", chinese: "蛋"},
+{english: "popcorn", chinese: "爆米花"},
+{english: "butter", chinese: "奶油"},
+{english: "salt", chinese: "鹽"},
+{english: "rice ball", chinese: "飯糰"},
+{english: "rice", chinese: "米飯"},
+{english: "noodles", chinese: "麵食"},
+{english: "oden", chinese: "關東煮"},
+{english: "sushi", chinese: "壽司"},
+{english: "mochi", chinese: "糯米丸子"},
+{english: "dumplings", chinese: "水餃"},
+{english: "fortune cookie", chinese: "幸運餅乾"},
+{english: "crab", chinese: "螃蟹"},
+{english: "lobster", chinese: "龍蝦"},
+{english: "shrimp", chinese: "蝦子"},
+{english: "squid", chinese: "烏賊"},
+{english: "oyster", chinese: "牡蠣"},
+{english: "ice cream", chinese: "霜淇淋"},
+{english: "gelato", chinese: "冰淇淋"},
+{english: "donut", chinese: "甜甜圈"},
+{english: "cookie", chinese: "餅乾"},
+{english: "cake", chinese: "蛋糕"},
+{english: "candy", chinese: "糖果"},
+{english: "baby bottle", chinese: "奶瓶"},
+{english: "milk", chinese: "牛奶"},
+{english: "teapot", chinese: "茶壺"},
+{english: "cup", chinese: "茶碗"},
+{english: "wine glass", chinese: "酒杯"},
+{english: "beer", chinese: "啤酒"},
+{english: "pearl milk tea", chinese: "珍珠奶茶"},
+{english: "chopsticks", chinese: "筷子"},
+{english: "plate and cutlery", chinese: "盤子和刀叉"},
+{english: "cutlery", chinese: "刀叉"},
+{english: "spoon", chinese: "湯匙"},
+{english: "Halloween", chinese: "萬聖節"},
+{english: "Christmas tree", chinese: "聖誕樹"},
+{english: "fireworks", chinese: "煙火"},
+{english: "fairy stick", chinese: "仙女棒"},
+{english: "firecrackers", chinese: "鞭炮"},
+{english: "balloon", chinese: "氣球"},
+{english: "party popper", chinese: "拉炮"},
+{english: "koi flag", chinese: "鯉魚旗"},
+{english: "ribbon", chinese: "緞帶"},
+{english: "present", chinese: "禮物"},
+{english: "ticket", chinese: "門票"},
+{english: "medal", chinese: "勳章"},
+{english: "trophy", chinese: "獎盃"},
+{english: "award", chinese: "獎章"},
+{english: "gold medal", chinese: "金牌"},
+{english: "silver medal", chinese: "銀牌"},
+{english: "bronze medal", chinese: "銅牌"},
+{english: "soccer", chinese: "足球"},
+{english: "baseball", chinese: "棒球"},
+{english: "softball", chinese: "壘球"},
+{english: "basketball", chinese: "籃球"},
+{english: "volleyball", chinese: "排球"},
+{english: "american football", chinese: "美式足球"},
+{english: "rugby", chinese: "橄欖球"},
+{english: "tennis", chinese: "網球"},
+{english: "hockey", chinese: "曲棍球"},
+{english: "table tennis", chinese: "桌球"},
+{english: "badminton", chinese: "羽球"},
+{english: "boxing", chinese: "拳擊"},
+{english: "ice skates", chinese: "冰刀鞋"},
+{english: "fishing rod", chinese: "釣竿"},
+{english: "sportswear", chinese: "運動服"},
+{english: "kite", chinese: "風箏"},
+{english: "magic wand", chinese: "魔法棒"},
+{english: "video games", chinese: "電玩遊戲"},
+{english: "dice", chinese: "骰子"},
+{english: "puzzle", chinese: "拼圖"},
+{english: "teddy bear", chinese: "泰迪熊"},
+{english: "spades", chinese: "黑桃"},
+{english: "hearts", chinese: "紅心"},
+{english: "diamonds", chinese: "方塊"},
+{english: "clubs", chinese: "梅花"},
+{english: "chess", chinese: "西洋棋"},
+{english: "photo frame", chinese: "相框"},
+{english: "palette", chinese: "調色盤"},
+{english: "thread", chinese: "線"},
+{english: "needle", chinese: "針"},
+{english: "healthcare worker", chinese: "醫護人員"},
+{english: "teacher", chinese: "老師"},
+{english: "judge", chinese: "法官"},
+{english: "farmworker", chinese: "農夫"},
+{english: "chef", chinese: "廚師"},
+{english: "scientist", chinese: "科學家"},
+{english: "artist", chinese: "畫家"},
+{english: "pilot", chinese: "機長"},
+{english: "astronaut", chinese: "太空人"},
+{english: "firefighter", chinese: "消防員"},
+{english: "police", chinese: "警察"},
+{english: "detective", chinese: "偵探"},
+{english: "guard", chinese: "衛兵"},
+{english: "ninja", chinese: "忍者"},
+{english: "worker", chinese: "工人"},
+{english: "Santa Claus", chinese: "聖誕老人"},
+{english: "magician", chinese: "魔法師"},
+{english: "fairy", chinese: "小仙子"},
+{english: "vampire", chinese: "吸血鬼"},
+{english: "mermaid", chinese: "人魚"},
+{english: "zombie", chinese: "喪屍"},
+{english: "bride", chinese: "新娘"},
+{english: "running", chinese: "跑步"},
+{english: "rock climbing", chinese: "攀岩"},
+{english: "fencing", chinese: "擊劍"},
+{english: "horse racing", chinese: "賽馬"},
+{english: "skiing", chinese: "滑雪"},
+{english: "golf", chinese: "高爾夫球"},
+{english: "surfing", chinese: "衝浪"},
+{english: "boating", chinese: "划船"},
+{english: "swimming", chinese: "游泳"},
+{english: "weightlifting", chinese: "舉重"},
+{english: "bicycle", chinese: "腳踏車"},
+{english: "items", chinese: "物品"},
+{english: "glasses", chinese: "眼鏡"},
+{english: "lifesaver", chinese: "救生衣"},
+{english: "tie", chinese: "領帶"},
+{english: "T-shirt", chinese: "T 恤"},
+{english: "jeans", chinese: "牛仔褲"},
+{english: "scarf", chinese: "圍巾"},
+{english: "gloves", chinese: "手套"},
+{english: "socks", chinese: "襪子"},
+{english: "dress", chinese: "洋裝"},
+{english: "kimono", chinese: "和服"},
+{english: "fan", chinese: "扇子"},
+{english: "wallet", chinese: "錢包"},
+{english: "handbag", chinese: "手提包"},
+{english: "pouch", chinese: "小袋子"},
+{english: "shopping bag", chinese: "購物袋"},
+{english: "backpack", chinese: "書包"},
+{english: "sandals", chinese: "涼鞋"},
+{english: "leather shoes", chinese: "皮鞋"},
+{english: "sneakers", chinese: "運動鞋"},
+{english: "crown", chinese: "皇冠"},
+{english: "prayer beads", chinese: "佛珠"},
+{english: "lipstick", chinese: "口紅"},
+{english: "ring", chinese: "戒指"},
+{english: "gem", chinese: "寶石"},
+{english: "loudspeaker", chinese: "喇叭"},
+{english: "megaphone", chinese: "大聲公"},
+{english: "bell", chinese: "鈴鐺"},
+{english: "notes", chinese: "音符"},
+{english: "microphone", chinese: "麥克風"},
+{english: "headphones", chinese: "耳機"},
+{english: "saxophone", chinese: "薩克斯風"},
+{english: "accordion", chinese: "手風琴"},
+{english: "guitar", chinese: "吉他"},
+{english: "keyboard", chinese: "鍵盤"},
+{english: "trumpet", chinese: "小號"},
+{english: "violin", chinese: "小提琴"},
+{english: "drums", chinese: "鼓"},
+{english: "maraca", chinese: "沙槌"},
+{english: "flute", chinese: "笛子"},
+{english: "cellphone", chinese: "手機"},
+{english: "battery", chinese: "電池"},
+{english: "plug", chinese: "插頭"},
+{english: "laptop", chinese: "筆記型電腦"},
+{english: "desktop", chinese: "桌上型電腦"},
+{english: "printer", chinese: "印表機"},
+{english: "keyboard", chinese: "鍵盤"},
+{english: "computer mouse", chinese: "電腦滑鼠"},
+{english: "floppy disk", chinese: "磁碟片"},
+{english: "CD", chinese: "光碟"},
+{english: "TV", chinese: "電視"},
+{english: "camera", chinese: "相機"},
+{english: "magnifying glass", chinese: "放大鏡"},
+{english: "candle", chinese: "蠟燭"},
+{english: "light bulb", chinese: "電燈泡"},
+{english: "flashlight", chinese: "手電筒"},
+{english: "book", chinese: "書"},
+{english: "notebook", chinese: "筆記本"},
+{english: "ledger", chinese: "分類帳"},
+{english: "coin", chinese: "硬幣"},
+{english: "bill", chinese: "鈔票"},
+{english: "credit card", chinese: "信用卡"},
+{english: "receipt", chinese: "收據"},
+{english: "package", chinese: "包裹"},
+{english: "mailbox", chinese: "郵筒"},
+{english: "pencil", chinese: "鉛筆"},
+{english: "pen", chinese: "鋼筆"},
+{english: "ballpoint", chinese: "原子筆"},
+{english: "paintbrush", chinese: "畫筆"},
+{english: "crayon", chinese: "蠟筆"},
+{english: "briefcase", chinese: "公事包"},
+{english: "calendar", chinese: "日曆"},
+{english: "pushpin", chinese: "圖釘"},
+{english: "paperclip", chinese: "迴紋針"},
+{english: "ruler", chinese: "直尺"},
+{english: "triangle ruler", chinese: "三角板"},
+{english: "scissors", chinese: "黑色剪刀"},
+{english: "trash can", chinese: "垃圾桶"},
+{english: "lock", chinese: "鎖頭"},
+{english: "key", chinese: "鑰匙"},
+{english: "hammer", chinese: "鐵鎚"},
+{english: "axe", chinese: "斧頭"},
+{english: "pickaxe", chinese: "十字鎬"},
+{english: "boomerang", chinese: "迴力鏢"},
+{english: "bow and arrow", chinese: "弓箭"},
+{english: "shield", chinese: "盾牌"},
+{english: "saw", chinese: "手鋸"},
+{english: "wrench", chinese: "扳手"},
+{english: "screwdriver", chinese: "螺絲起子"},
+{english: "nut and bolt", chinese: "螺帽與螺栓"},
+{english: "gear", chinese: "齒輪"},
+{english: "scales", chinese: "天平"},
+{english: "hook", chinese: "鉤子"},
+{english: "toolbox", chinese: "工具箱"},
+{english: "magnet", chinese: "磁鐵"},
+{english: "ladder", chinese: "梯子"},
+{english: "test tube", chinese: "試管"},
+{english: "telescope", chinese: "望遠鏡"},
+{english: "satellite", chinese: "衛星"},
+{english: "syringe", chinese: "注射器"},
+{english: "droplet", chinese: "血滴"},
+{english: "pill", chinese: "藥丸"},
+{english: "cane", chinese: "拐杖"},
+{english: "stethoscope", chinese: "聽診器"},
+{english: "X-ray", chinese: "X光片"},
+{english: "door", chinese: "門"},
+{english: "elevator", chinese: "電梯"},
+{english: "mirror", chinese: "鏡子"},
+{english: "window", chinese: "窗戶"},
+{english: "bed", chinese: "床鋪"},
+{english: "chair", chinese: "椅子"},
+{english: "toilet", chinese: "馬桶"},
+{english: "shower", chinese: "淋浴"},
+{english: "bath", chinese: "浴缸"},
+{english: "broom", chinese: "掃把"},
+{english: "basket", chinese: "籃子"},
+{english: "toilet paper", chinese: "紙捲"},
+{english: "bucket", chinese: "水桶"},
+{english: "soap", chinese: "肥皂"},
+{english: "bubbles", chinese: "泡泡"},
+{english: "toothbrush", chinese: "牙刷"},
+{english: "sponge", chinese: "海綿"},
+{english: "fire extinguisher", chinese: "滅火器"},
+{english: "shopping cart", chinese: "購物車"},
+{english: "tombstone", chinese: "墓碑"},
+{english: "ID card", chinese: "身分證"},
+{english: "earth", chinese: "地球"},
+{english: "map", chinese: "世界地圖"},
+{english: "compass", chinese: "指南針"},
+{english: "mountain", chinese: "山脈"},
+{english: "volcano", chinese: "火山"},
+{english: "camping", chinese: "露營"},
+{english: "parasol", chinese: "陽傘"},
+{english: "desert", chinese: "沙漠"},
+{english: "island", chinese: "無人島"},
+{english: "brick", chinese: "磚塊"},
+{english: "rock", chinese: "岩石"},
+{english: "wood", chinese: "木材"},
+{english: "hut", chinese: "茅草屋"},
+{english: "house", chinese: "房子"},
+{english: "hospital", chinese: "醫院"},
+{english: "bank", chinese: "銀行"},
+{english: "hotel", chinese: "飯店"},
+{english: "convenience store", chinese: "便利商店"},
+{english: "school", chinese: "學校"},
+{english: "factory", chinese: "工廠"},
+{english: "chuch", chinese: "教堂"},
+{english: "shrine", chinese: "神社"},
+{english: "fountain", chinese: "噴泉"},
+{english: "tent", chinese: "帳篷"},
+{english: "sunrise", chinese: "日出"},
+{english: "sunset", chinese: "日落"},
+{english: "hot spring", chinese: "溫泉"},
+{english: "carousel", chinese: "旋轉木馬"},
+{english: "slide", chinese: "滑梯"},
+{english: "ferris wheel", chinese: "摩天輪"},
+{english: "roller coaster", chinese: "雲霄飛車"},
+{english: "circus", chinese: "馬戲團"},
+{english: "steam train", chinese: "蒸汽火車頭"},
+{english: "train", chinese: "火車"},
+{english: "high-speed train", chinese: "高速鐵路列車"},
+{english: "subway", chinese: "地下鐵路"},
+{english: "light rail", chinese: "輕軌鐵路"},
+{english: "bus", chinese: "公車"},
+{english: "ambulance", chinese: "救護車"},
+{english: "fire truck", chinese: "消防車"},
+{english: "police car", chinese: "警車"},
+{english: "taxi", chinese: "計程車"},
+{english: "car", chinese: "汽車"},
+{english: "small truck", chinese: "小貨車"},
+{english: "truck", chinese: "卡車"},
+{english: "tractor", chinese: "拖拉機"},
+{english: "race car", chinese: "賽車"},
+{english: "motorcycle", chinese: "摩托車"},
+{english: "motorcycle", chinese: "摩托車"},
+{english: "bicycle", chinese: "腳踏車"},
+{english: "scooter", chinese: "滑板車"},
+{english: "skateboard", chinese: "滑板"},
+{english: "roller skates", chinese: "溜冰鞋"},
+{english: "highway", chinese: "高速公路"},
+{english: "railroad tracks", chinese: "鐵軌"},
+{english: "oil barrel", chinese: "油桶"},
+{english: "car wheel", chinese: "車輪"},
+{english: "warning light", chinese: "警示燈"},
+{english: "traffic light", chinese: "紅綠燈"},
+{english: "traffic light", chinese: "紅綠燈"},
+{english: "construction", chinese: "施工"},
+{english: "anchor", chinese: "船錨"},
+{english: "lifesaver", chinese: "救生圈"},
+{english: "sailboat", chinese: "帆船"},
+{english: "canoe", chinese: "獨木舟"},
+{english: "ship", chinese: "船隻"},
+{english: "airplane", chinese: "飛機"},
+{english: "parachute", chinese: "降落傘"},
+{english: "helicopter", chinese: "直昇機"},
+{english: "cable car", chinese: "纜車"},
+{english: "satellite", chinese: "衛星"},
+{english: "rocket", chinese: "火箭"},
+{english: "UFO", chinese: "幽浮"},
+{english: "service bell", chinese: "服務鈴"},
+{english: "luggage", chinese: "行李"},
+{english: "sand timer", chinese: "沙漏"},
+{english: "watch", chinese: "手錶"},
+{english: "alarm clock", chinese: "鬧鐘"},
+{english: "timer", chinese: "碼錶"},
+{english: "clock", chinese: "時鐘"},
+{english: "moon", chinese: "月亮"},
+{english: "sun", chinese: "太陽"},
+{english: "planet", chinese: "星球"},
+{english: "star", chinese: "星星"},
+{english: "shooting star", chinese: "流星"},
+{english: "cloud", chinese: "雲朵"},
+{english: "lightning", chinese: "閃電"},
+{english: "tornado", chinese: "龍捲風"},
+{english: "rainbow", chinese: "彩虹"},
+{english: "umbrella", chinese: "雨傘"},
+{english: "beach umbrella", chinese: "海灘傘"},
+{english: "snowflake", chinese: "雪花"},
+{english: "snowman", chinese: "雪人"},
+{english: "comet", chinese: "彗星"},
+{english: "fire", chinese: "火"},
+{english: "water droplet", chinese: "水滴"}
+];
+        let fruitDisplay = document.getElementById("fruitDisplay");
+        let userInput = document.getElementById("userInput");
+        let humanContainer = document.getElementById("humanContainer");
+        let dinoContainer = document.getElementById("dinoContainer");
+        let distanceDisplay = document.getElementById("distanceDisplay");
+
+        let countdownContainer = document.createElement("div");
+        countdownContainer.style.position = "absolute";
+        countdownContainer.style.top = "300px";
+        countdownContainer.style.left = "50%";
+        countdownContainer.style.transform = "translate(-50%, -50%)";
+        countdownContainer.style.fontSize = "64px";
+        countdownContainer.style.fontWeight = "bold";
+        countdownContainer.style.color = "#333";
+		countdownContainer.style.color = "#0000E3";
+        document.body.appendChild(countdownContainer);
+
+        let restartButton = document.createElement('button');
+        restartButton.textContent = "Restart";
+        restartButton.classList.add('restart-btn');
+        document.body.appendChild(restartButton);
+        restartButton.style.display = "none";
+
+        userInput.disabled = true;
+
+        let isGameOver = false; // 這是用來判斷遊戲是否結束
+
+        // 追蹤已使用的題目
+        let usedFruits = [];
+        let totalQuestions = 0;
+
+        function getRandomFruit() {
+            // 在前10題內確保不重複
+            if (totalQuestions < 10) {
+                let availableFruits = fruits.filter(fruit => !usedFruits.includes(fruit));
+                if (availableFruits.length === 0) {
+                    usedFruits = []; // 如果所有題目都用完了，重置
+                    availableFruits = fruits;
+                }
+                let randomIndex = Math.floor(Math.random() * availableFruits.length);
+                let selectedFruit = availableFruits[randomIndex];
+                usedFruits.push(selectedFruit);
+                totalQuestions++;
+                return selectedFruit;
+            } else {
+                // 10題之後隨機出題
+                return fruits[Math.floor(Math.random() * fruits.length)];
+            }
+        }
+
+function displayFruit() {
+    let fruit = getRandomFruit();
+    // 用 span 包裝中文並應用 .chinese 類別
+    fruitDisplay.innerHTML = `${fruit.english.toUpperCase()} <span class="chinese">(${fruit.chinese})</span>`;
+}
+
+        let humanLeftPosition = 350;  // 初始位置
+
+        function dropApple() {
+            let appleElement = document.createElement('div');
+            appleElement.textContent = "🍎";
+            appleElement.classList.add('apple');
+
+            let humanPosition = humanContainer.getBoundingClientRect();
+            appleElement.style.left = `${humanPosition.left + humanPosition.width / 2 - 20}px`;
+            document.body.appendChild(appleElement);
+
+            appleElement.addEventListener('animationend', () => {
+                appleElement.remove();
+                // 當蘋果消失後更新 human-container 的位置
+                humanLeftPosition += 20;  // 增加 20px
+                humanContainer.style.left = `${humanLeftPosition}px`; // 更新位置
+            });
+        }
+
+        // 在用戶輸入錯誤時搖晃輸入框
+userInput.addEventListener("keypress", function (e) {
+    if (e.key === "Enter") {
+        let inputValue = userInput.value.trim().toLowerCase();
+        let currentFruit = document.querySelector('.fruit-container').textContent.toLowerCase();
+
+        // 去除括號及中文，僅比對英文
+        currentFruit = currentFruit.replace(/\(.*\)/, "").trim();
+
+        if (inputValue === currentFruit) {
+            userInput.value = '';
+            userInput.classList.remove('shake');
+            dropApple();
+            displayFruit();
+        } else {
+            userInput.classList.add('shake');
+            setTimeout(() => {
+                userInput.classList.remove('shake');
+            }, 500);
+        }
+    }
+});
+
+        function toggleEyes() {
+            let eye1 = document.getElementById("eye1");
+            let eye2 = document.getElementById("eye2");
+
+            setInterval(() => {
+                eye1.classList.toggle("hidden");
+                setTimeout(() => {
+                    eye2.classList.toggle("hidden");
+                }, 250);
+            }, 250);
+        }
+
+        function toggleHands() {
+            let hand1 = document.getElementById("hand1");
+            let hand2 = document.getElementById("hand2");
+
+            setInterval(() => {
+                hand1.classList.toggle("hidden");
+                setTimeout(() => {
+                    hand2.classList.toggle("hidden");
+                }, 150);
+            }, 150);
+        }
+
+        let dinoMoveInterval;
+        let humanMoveInterval;
+
+        function dinoMove() {
+            let leftPosition = 0;
+            dinoMoveInterval = setInterval(() => {
+                if (leftPosition < 900 && !isGameOver) {
+                    leftPosition += 0.3;
+                    dinoContainer.style.left = leftPosition + 'px';
+                } else {
+                    clearInterval(dinoMoveInterval);
+                    if (!isGameOver) {
+                        gameWon(); // 恐龍到達 900px，顯示成功逃脫
+                    }
+                }
+            }, 16);
+        }
+
+        function humanMove() {
+            humanMoveInterval = setInterval(() => {
+                if (humanLeftPosition < 1120 && !isGameOver) {
+                    humanLeftPosition += 0.2; // 每次移動 0.2px
+                    humanContainer.style.left = `${humanLeftPosition}px`;
+                    
+                    // 當位置到達1119時隱藏human-container
+                    if (humanLeftPosition >= 1119) {
+                        humanContainer.style.display = 'none';
+                    }
+                } else {
+                    clearInterval(humanMoveInterval);
+                    if (!isGameOver) {
+                        userInput.disabled = true; // 禁用輸入框
+                    }
+                }
+            }, 16);
+        }
+
+        function updateDistance() {
+            let dinoPosition = dinoContainer.getBoundingClientRect();
+            let humanPosition = humanContainer.getBoundingClientRect();
+            let distance = Math.abs(dinoPosition.left - humanPosition.left);
+            let distanceAfterSubtract = Math.floor(distance) - 200;  // 取整數並減去 200
+    distanceDisplay.textContent = `距離: ${distanceAfterSubtract}`;  // 顯示更新後的距離
+            if (distance < 200 && !isGameOver) {
+                gameLost(); // 距離小於200，顯示失敗
+            }
+        }
+
+        // 讓恐龍跳躍
+        function dinoJump() {
+            let up = true;
+            setInterval(() => {
+                dinoContainer.style.transform = up ? "translateY(-8px)" : "translateY(0)";
+                up = !up;
+            }, 250);
+        }
+
+        // 讓人形角色跳躍
+        function humanJump() {
+            let up = true;
+            setInterval(() => {
+                humanContainer.style.transform = up ? "translateY(-3px)" : "translateY(0)";
+                up = !up;
+            }, 150);
+        }
+
+        function gameLost() {
+            isGameOver = true; // 設置遊戲結束
+            // 顯示“逃脫失敗”信息
+            let gameLostMessage = document.createElement('div');
+            gameLostMessage.textContent = "逃脫失敗 ... ...";
+            gameLostMessage.style.fontSize = "36px";
+            gameLostMessage.style.fontWeight = "bold";
+            gameLostMessage.style.color = "	#CE0000";
+            gameLostMessage.style.position = "absolute";
+            gameLostMessage.style.top = "250px";
+            gameLostMessage.style.left = "50%";
+            gameLostMessage.style.transform = "translateX(-50%)";
+            document.body.appendChild(gameLostMessage);
+
+            // 停止所有移動
+            clearInterval(dinoMoveInterval);
+            clearInterval(humanMoveInterval);
+
+            // 禁用輸入框
+            userInput.disabled = true;
+
+            // 顯示“Restart”按鈕
+            restartButton.style.display = "inline-block";
+        }
+
+        function gameWon() {
+            isGameOver = true; // 設置遊戲結束
+            // 顯示“成功逃脫”信息
+            let gameWonMessage = document.createElement('div');
+            gameWonMessage.textContent = "成功逃脫！";
+            gameWonMessage.style.fontSize = "36px";
+            gameWonMessage.style.fontWeight = "bold";
+            gameWonMessage.style.color = "#32cd32";
+            gameWonMessage.style.position = "absolute";
+            gameWonMessage.style.top = "250px";
+            gameWonMessage.style.left = "50%";
+            gameWonMessage.style.transform = "translateX(-50%)";
+            document.body.appendChild(gameWonMessage);
+
+            // 停止所有移動
+            clearInterval(dinoMoveInterval);
+            clearInterval(humanMoveInterval);
+
+            // 顯示“Restart”按鈕
+            restartButton.style.display = "inline-block";
+        }
+
+        restartButton.addEventListener('click', () => {
+            // 重新載入遊戲
+            window.location.reload();
+        });
+
+        function startCountdown(callback) {
+            let countdown = 3;
+            countdownContainer.textContent = countdown;
+
+            let timer = setInterval(() => {
+                countdown--;
+                if (countdown > -1) {
+                    countdownContainer.textContent = countdown;
+                } else {
+                    countdownContainer.textContent = "Run !!";
+                    setTimeout(() => {
+                        countdownContainer.style.display = "none";
+                        userInput.disabled = false;
+                        callback();
+                    }, 1000);
+                    clearInterval(timer);
+                }
+            }, 1000);
+        }
+
+        // 移除進度顯示的 div
+        const progressContainer = document.querySelector('div[style*="進度"]');
+        if (progressContainer) {
+            progressContainer.remove();
+        }
+
+        startCountdown(() => {
+            dinoMove();  // 開始恐龍移動
+            humanMove(); // 開始人形角色移動
+            dinoJump();  // 開始恐龍跳躍
+            humanJump(); // 開始人形跳躍
+            toggleEyes();
+            toggleHands();
+            displayFruit();
+            setInterval(updateDistance, 16);  // 每16毫秒更新一次距離
+        });
+    </script>
+</body>
+</html>

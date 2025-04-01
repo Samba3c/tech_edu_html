@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英文字母射氣球遊戲</title>
+    <style>
+        body {
+            text-align: center;
+            background-color: skyblue;
+            overflow-y: auto;
+        }
+        #game-container {
+            position: relative;
+            width: 1200px;
+            height: 600px;
+            margin: auto;
+            background-color: white;
+            border: 2px solid black;
+            overflow: hidden;
+        }
+        /* 恢復為平滑的天花板 */
+        #ceiling-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            background-color: darkred;
+            transition: top 0.2s ease;
+        }
+        /* 新增的箭頭形狀，位置跟天花板綁定 */
+        #ceiling-arrow {
+            position: absolute;
+            top: 0px; /* 修改為 0px，這樣箭頭會更接近天花板 */
+            left: 0;
+            width: 100%;
+            height: 50px;
+            line-height: 50px;
+            font-size: 30px;
+            text-align: center;
+            color: darkred;
+            font-weight: bold;
+            transition: top 0.2s ease; /* 確保箭頭隨天花板一同下移 */
+        }
+        .balloon {
+            position: absolute;
+            font-size: 40px;
+            color: white;
+            text-align: center;
+            width: 50px;
+            height: 50px;
+            line-height: 50px;
+            border-radius: 50%;
+            transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+        }
+        .pop {
+            transform: scale(1.5);
+            opacity: 0;
+        }
+        #scoreboard {
+            font-size: 24px;
+            margin-top: 10px;
+        }
+        #game-over {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 40px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        /* 隱藏天花板高度 */
+        #ceiling-height {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>英文字母射氣球遊戲</h1>
+    <div id="scoreboard">得分: <span id="score">0</span> | 錯誤: <span id="mistakes">0</span></div>
+    <div id="game-container">
+        <div id="ceiling-bar"></div>
+        <!-- 新增的箭頭形狀 -->
+        <div id="ceiling-arrow">▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼</div>
+    </div>
+    <div id="game-over">遊戲結束！<br>得分: <span id="final-score"></span> | 錯誤: <span id="final-mistakes"></span><br><button onclick="restartGame()">重新挑戰</button></div>
+    
+    <script>
+        const gameContainer = document.getElementById("game-container");
+        const scoreDisplay = document.getElementById("score");
+        const mistakesDisplay = document.getElementById("mistakes");
+        const gameOverScreen = document.getElementById("game-over");
+        const finalScore = document.getElementById("final-score");
+        const finalMistakes = document.getElementById("final-mistakes");
+
+        let score = 0;
+        let mistakes = 0;
+        let balloons = [];
+        let gameActive = true;
+
+        let ceilingHeight = 600;
+
+        function getRandomColor() {
+            return `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255})`;
+        }
+
+        function createBalloon() {
+            if (!gameActive) return;
+            let letter = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+            let balloon = document.createElement("div");
+            balloon.className = "balloon";
+            balloon.innerText = letter;
+            balloon.style.left = `${Math.random() * 1150}px`;
+            balloon.style.bottom = "-50px";
+            balloon.style.backgroundColor = getRandomColor();
+            gameContainer.appendChild(balloon);
+            balloons.push(balloon);
+
+            let speed = 1 + Math.random() * 2;
+            let moveInterval = setInterval(() => {
+                if (!gameActive) {
+                    clearInterval(moveInterval);
+                    return;
+                }
+                let currentBottom = parseFloat(balloon.style.bottom);
+                if (currentBottom >= ceilingHeight - 80) {  // 考慮天花板高度
+                    balloon.remove();
+                    balloons = balloons.filter(b => b !== balloon);
+                    clearInterval(moveInterval);
+                    if (!balloon.classList.contains("pop")) {
+                        ceilingHeight -= 10;
+                        document.getElementById("ceiling-bar").style.top = `${600 - ceilingHeight}px`;
+                        document.getElementById("ceiling-arrow").style.top = `${600 - ceilingHeight + 0}px`; // 更新箭頭位置
+                        checkCeilingHeight();
+                    }
+                } else {
+                    balloon.style.bottom = `${currentBottom + speed}px`;
+                }
+            }, 20);
+        }
+
+        function spawnBalloons() {
+            if (!gameActive) return;
+            createBalloon();
+            let nextSpawn = 200 + Math.random() * 600;
+            setTimeout(spawnBalloons, nextSpawn);
+        }
+
+        function handleKeyPress(event) {
+            if (!gameActive) return;
+            let key = event.key.toUpperCase();
+            let found = false;
+            
+            balloons.forEach(balloon => {
+                if (balloon.innerText === key) {
+                    found = true;
+                    score++;
+                    scoreDisplay.innerText = score;
+                    balloon.classList.add("pop");
+                    setTimeout(() => {
+                        balloon.remove();
+                        balloons = balloons.filter(b => b !== balloon);
+                    }, 200);
+                }
+            });
+            
+            if (!found) {
+                mistakes++;
+                mistakesDisplay.innerText = mistakes;
+            }
+        }
+
+        function startGame() {
+            // 重設變數
+            gameActive = true;
+            score = 0;
+            mistakes = 0;
+            ceilingHeight = 600; // 重設天花板高度
+            scoreDisplay.innerText = score;
+            mistakesDisplay.innerText = mistakes;
+            document.getElementById("ceiling-bar").style.top = "0px"; // 重設天花板位置
+            document.getElementById("ceiling-arrow").style.top = "10px"; // 重設箭頭位置
+            gameOverScreen.style.display = "none";
+            gameContainer.innerHTML = "<div id='ceiling-bar'></div><div id='ceiling-arrow'>▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼</div>"; // 重設遊戲容器
+            balloons = [];
+            spawnBalloons();
+        }
+
+        function endGame() {
+            gameActive = false;
+            gameOverScreen.style.display = "block";
+            finalScore.innerText = score;
+            finalMistakes.innerText = mistakes;
+        }
+
+        function restartGame() {
+            startGame();
+        }
+
+        document.addEventListener("keydown", handleKeyPress);
+
+        function checkCeilingHeight() {
+            if (ceilingHeight <= 80) {
+                endGame();
+            }
+        }
+
+        startGame();
+    </script>程式作者：老師 Ver.20250401
+</body>
+</html>

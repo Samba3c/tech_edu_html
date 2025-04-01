@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Word Game 貪食蛇吞單字  ⚇৹৹৹৹</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            margin-top: 1px;
+            border-collapse: collapse;
+        }
+        td {
+            padding: 20px;
+            vertical-align: top;
+        }
+        /* 修改第一個欄位的內容靠右對齊 */
+        td:first-child {
+            text-align: right;
+        }
+        /* 修改第二個欄位的內容靠左對齊 */
+        td:last-child {
+            text-align: left;
+        }
+        canvas {
+            border: 2px solid black;
+            background-color: #f0f8ff;
+        }
+        .info {
+            font-size: 20px;
+            margin-top: 10px;
+        }
+        #wordInput {
+            font-size: 24px;
+            padding: 10px;
+            width: 300px;
+        }
+        #wordDisplay {
+            color: red;
+            font-weight: bold;
+            font-size: 36px;
+        }
+        #nextLetter {
+            font-size: 36px;
+            font-weight: bold;
+            color: blue;
+        }
+        #collectedLetters {
+            font-size: 24px;
+            font-weight: bold;
+            color: green;
+        }
+        #wordTranslation {
+            color: gray;
+            font-weight: bold;
+            font-size: 24px;
+        }
+        footer {
+            margin-top: 30px;
+            font-size: 16px;
+            color: gray;
+        }
+    </style>
+</head>
+<body>
+    <!-- 1x2 表格 -->
+    <table>
+        <tr>
+            <td>
+                <p>Enter the correct word and press ENTER⏎ to start：</p>
+                <p class="info">Word to Enter： <span id="wordDisplay"></span>-<span id="wordTranslation"></span></p>
+                <input type="text" id="wordInput" onkeydown="if(event.key==='Enter') startGame()">
+                <p class="info">Use the arrow keys(⬅️⬆️➡️⬇️) to control the snake.<br>Next letter to eat： <span id="nextLetter"></span></p>
+                <p class="info">Collected： <span id="collectedLetters"></span></p>
+                <p id="gameTime" class="info"></p>
+                <button onclick="restartGame()">Restart</button>
+                <br><br>
+            </td>
+            <td>
+                <canvas id="gameCanvas" width="800" height="600"></canvas>
+            </td>
+        </tr>
+    </table>
+
+    <script>
+        const words = ["monkey","gorilla","dog","fox","raccoon","cat","lion","tiger","leopard","moose","donkey","horse","zebra","deer","bison","cow","pig","sheep","goat","camel","alpaca","giraffe","elephant","rhino","hippopotamus","mouse","rabbit","squirrel","beaver","hedgehog","bat","bear","polarbear","koala","panda","sloth","otter","skunk","kangaroo","badger","turkey","rooster","chick","penguin","dove","eagle","duck","swans","owl","dodo","feather","flamingo","peacock","parrot","crow","goose","phoenix","crocodile","turtle","lizard","snake","dinosaur","whale","dolphin","seal","fish","pufferfish","shark","octopus","clam","coral","jellyfish","slug","butterfly","insect","ant","bee","beetle","ladybug","cricket","cockroach","spider","spiderweb","scorpion","mosquito","fly","earthworm","cherryblossom","lotus","rose","sunflower","flower","tulip","hyacinth","sapling","pottedplant","tree","palmtree","cactus","grass","birdnest","mushroom","grape","cantaloupe","watermelon","orange","lemon","banana","pineapple","mango","apple","pear","peach","cherry","strawberry","blueberry","kiwi","tomato","avocado","eggplant","potato","carrot","corn","chili","bellpepper","cucumber","vegetables","broccoli","garlic","onion","peanut","beans","chestnut","ginger","pod","bread","bagel","pancake","cheese","steak","bacon","burger","frenchfries","pizza","hotdog","sandwich","egg","popcorn","butter","salt","riceball","rice","noodles","oden","sushi","mochi","dumplings","fortunecookie","crab","lobster","shrimp","squid","oyster","icecream","gelato","donut","cookie","cake","candy","babybottle","milk","teapot","cup","wineglass","beer","pearlmilktea","chopsticks","plateandcutlery","cutlery","spoon","Halloween","Christmastree","fireworks","fairystick","firecrackers","balloon","partypopper","koiflag","ribbon","present","ticket","medal","trophy","award","goldmedal","silvermedal","bronzemedal","soccer","baseball","softball","basketball","volleyball","americanfootball","rugby","tennis","hockey","tabletennis","badminton","boxing","iceskates","fishingrod","sportswear","kite","magicwand","videogames","dice","puzzle","teddybear","spades","hearts","diamonds","clubs","chess","photoframe","palette","thread","needle","healthcareworker","teacher","judge","farmworker","chef","scientist","artist","pilot","astronaut","firefighter","police","detective","guard","ninja","worker","SantaClaus","magician","fairy","vampire","mermaid","zombie","bride","running","rockclimbing","fencing","horseracing","skiing","golf","surfing","boating","swimming","weightlifting","bicycle","items","glasses","lifesaver","tie","T-shirt","jeans","scarf","gloves","socks","dress","kimono","fan","wallet","handbag","pouch","shoppingbag","backpack","sandals","leathershoes","sneakers","crown","prayerbeads","lipstick","ring","gem","loudspeaker","megaphone","bell","notes","microphone","headphones","saxophone","accordion","guitar","keyboard","trumpet","violin","drums","maraca","flute","cellphone","battery","plug","laptop","desktop","printer","keyboard","computermouse","floppydisk","CD","TV","camera","magnifyingglass","candle","lightbulb","flashlight","book","notebook","ledger","coin","bill","creditcard","receipt","package","mailbox","pencil","pen","ballpoint","paintbrush","crayon","briefcase","calendar","pushpin","paperclip","ruler","triangleruler","scissors","trashcan","lock","key","hammer","axe","pickaxe","boomerang","bowandarrow","shield","saw","wrench","screwdriver","nutandbolt","gear","scales","hook","toolbox","magnet","ladder","testtube","telescope","satellite","syringe","droplet","pill","cane","stethoscope","X-ray","door","elevator","mirror","window","bed","chair","toilet","shower","bath","broom","basket","toiletpaper","bucket","soap","bubbles","toothbrush","sponge","fireextinguisher","shoppingcart","tombstone","IDcard","earth","map","compass","mountain","volcano","camping","parasol","desert","island","brick","rock","wood","hut","house","hospital","bank","hotel","conveniencestore","school","factory","chuch","shrine","fountain","tent","sunrise","sunset","hotspring","carousel","slide","ferriswheel","rollercoaster","circus","steamtrain","train","high-speedtrain","subway","lightrail","bus","ambulance","firetruck","policecar","taxi","car","smalltruck","truck","tractor","racecar","motorcycle","motorcycle","bicycle","scooter","skateboard","rollerskates","highway","railroadtracks","oilbarrel","carwheel","warninglight","trafficlight","trafficlight","construction","anchor","lifesaver","sailboat","canoe","ship","airplane","parachute","helicopter","cablecar","satellite","rocket","UFO","servicebell","luggage","sandtimer","watch","alarmclock","timer","clock","moon","sun","planet","star","shootingstar","cloud","lightning","tornado","rainbow","umbrella","beachumbrella","snowflake","snowman","comet","fire","waterdroplet"];
+        const wordTranslations = {
+"monkey":"猴子","gorilla":"大猩猩","dog":"狗","fox":"狐狸","raccoon":"浣熊","cat":"貓","lion":"獅子","tiger":"老虎","leopard":"豹","moose":"麋鹿","donkey":"驢子","horse":"馬","zebra":"斑馬","deer":"鹿","bison":"野牛","cow":"牛","pig":"豬","sheep":"綿羊","goat":"山羊","camel":"駱駝","alpaca":"羊駝","giraffe":"長頸鹿","elephant":"大象","rhino":"犀牛","hippopotamus":"河馬","mouse":"老鼠","rabbit":"兔子","squirrel":"花栗鼠","beaver":"海狸","hedgehog":"刺蝟","bat":"蝙蝠","bear":"熊","polarbear":"北極熊","koala":"無尾熊","panda":"貓熊","sloth":"樹懶","otter":"水獺","skunk":"臭鼬","kangaroo":"袋鼠","badger":"獾","turkey":"火雞","rooster":"公雞","chick":"小雞","penguin":"企鵝","dove":"鴿子","eagle":"老鷹","duck":"綠頭鴨","swans":"天鵝","owl":"貓頭鷹","dodo":"渡渡鳥","feather":"羽毛","flamingo":"紅鶴","peacock":"孔雀","parrot":"鸚鵡","crow":"烏鴉","goose":"鵝","phoenix":"鳳凰","crocodile":"鱷魚","turtle":"烏龜","lizard":"蜥蜴","snake":"蛇","dinosaur":"恐龍","whale":"鯨魚","dolphin":"海豚","seal":"海豹","fish":"魚","pufferfish":"河豚","shark":"鯊魚","octopus":"章魚","clam":"螺","coral":"珊瑚","jellyfish":"水母","slug":"蝸牛","butterfly":"蝴蝶","insect":"蟲子","ant":"螞蟻","bee":"蜜蜂","beetle":"甲蟲","ladybug":"瓢蟲","cricket":"蟋蟀","cockroach":"蟑螂","spider":"蜘蛛","spiderweb":"蜘蛛網","scorpion":"蠍子","mosquito":"蚊子","fly":"蒼蠅","earthworm":"蚯蚓","cherryblossom":"櫻花","lotus":"蓮花","rose":"玫瑰","sunflower":"向日葵","flower":"花","tulip":"鬱金香","hyacinth":"風信子","sapling":"樹苗","pottedplant":"盆栽","tree":"樹木","palmtree":"棕櫚樹","cactus":"仙人掌","grass":"稻米","birdnest":"鳥巢","mushroom":"蘑菇","grape":"葡萄","cantaloupe":"香瓜","watermelon":"西瓜","orange":"柑橘","lemon":"檸檬","banana":"香蕉","pineapple":"鳳梨","mango":"芒果","apple":"蘋果","pear":"梨子","peach":"桃子","cherry":"櫻桃","strawberry":"草莓","blueberry":"藍莓","kiwi":"奇異果","tomato":"番茄","avocado":"酪梨","eggplant":"茄子","potato":"馬鈴薯","carrot":"紅蘿蔔","corn":"玉米","chili":"辣椒","bellpepper":"甜椒","cucumber":"黃瓜","vegetables":"蔬菜","broccoli":"花椰菜","garlic":"大蒜","onion":"洋蔥","peanut":"花生","beans":"豆子","chestnut":"栗子","ginger":"薑","pod":"豆莢","bread":"麵包","bagel":"貝果","pancake":"鬆餅","cheese":"乳酪","steak":"牛排","bacon":"培根","burger":"漢堡","frenchfries":"薯條","pizza":"披薩","hotdog":"熱狗","sandwich":"三明治","egg":"蛋","popcorn":"爆米花","butter":"奶油","salt":"鹽","riceball":"飯糰","rice":"米飯","noodles":"麵食","oden":"關東煮","sushi":"壽司","mochi":"糯米丸子","dumplings":"水餃","fortunecookie":"幸運餅乾","crab":"螃蟹","lobster":"龍蝦","shrimp":"蝦子","squid":"烏賊","oyster":"牡蠣","icecream":"霜淇淋","gelato":"冰淇淋","donut":"甜甜圈","cookie":"餅乾","cake":"蛋糕","candy":"糖果","babybottle":"奶瓶","milk":"牛奶","teapot":"茶壺","cup":"茶碗","wineglass":"酒杯","beer":"啤酒","pearlmilktea":"珍珠奶茶","chopsticks":"筷子","plateandcutlery":"盤子和刀叉","cutlery":"刀叉","spoon":"湯匙","Halloween":"萬聖節","Christmastree":"聖誕樹","fireworks":"煙火","fairystick":"仙女棒","firecrackers":"鞭炮","balloon":"氣球","partypopper":"拉炮","koiflag":"鯉魚旗","ribbon":"緞帶","present":"禮物","ticket":"門票","medal":"勳章","trophy":"獎盃","award":"獎章","goldmedal":"金牌","silvermedal":"銀牌","bronzemedal":"銅牌","soccer":"足球","baseball":"棒球","softball":"壘球","basketball":"籃球","volleyball":"排球","americanfootball":"美式足球","rugby":"橄欖球","tennis":"網球","hockey":"曲棍球","tabletennis":"桌球","badminton":"羽球","boxing":"拳擊","iceskates":"冰刀鞋","fishingrod":"釣竿","sportswear":"運動服","kite":"風箏","magicwand":"魔法棒","videogames":"電玩遊戲","dice":"骰子","puzzle":"拼圖","teddybear":"泰迪熊","spades":"黑桃","hearts":"紅心","diamonds":"方塊","clubs":"梅花","chess":"西洋棋","photoframe":"相框","palette":"調色盤","thread":"線","needle":"針","healthcareworker":"醫護人員","teacher":"老師","judge":"法官","farmworker":"農夫","chef":"廚師","scientist":"科學家","artist":"畫家","pilot":"機長","astronaut":"太空人","firefighter":"消防員","police":"警察","detective":"偵探","guard":"衛兵","ninja":"忍者","worker":"工人","SantaClaus":"聖誕老人","magician":"魔法師","fairy":"小仙子","vampire":"吸血鬼","mermaid":"人魚","zombie":"喪屍","bride":"新娘","running":"跑步","rockclimbing":"攀岩","fencing":"擊劍","horseracing":"賽馬","skiing":"滑雪","golf":"高爾夫球","surfing":"衝浪","boating":"划船","swimming":"游泳","weightlifting":"舉重","bicycle":"腳踏車","items":"物品","glasses":"眼鏡","lifesaver":"救生衣","tie":"領帶","T-shirt":"T恤","jeans":"牛仔褲","scarf":"圍巾","gloves":"手套","socks":"襪子","dress":"洋裝","kimono":"和服","fan":"扇子","wallet":"錢包","handbag":"手提包","pouch":"小袋子","shoppingbag":"購物袋","backpack":"書包","sandals":"涼鞋","leathershoes":"皮鞋","sneakers":"運動鞋","crown":"皇冠","prayerbeads":"佛珠","lipstick":"口紅","ring":"戒指","gem":"寶石","loudspeaker":"喇叭","megaphone":"大聲公","bell":"鈴鐺","notes":"音符","microphone":"麥克風","headphones":"耳機","saxophone":"薩克斯風","accordion":"手風琴","guitar":"吉他","keyboard":"鍵盤","trumpet":"小號","violin":"小提琴","drums":"鼓","maraca":"沙槌","flute":"笛子","cellphone":"手機","battery":"電池","plug":"插頭","laptop":"筆記型電腦","desktop":"桌上型電腦","printer":"印表機","keyboard":"鍵盤","computermouse":"電腦滑鼠","floppydisk":"磁碟片","CD":"光碟","TV":"電視","camera":"相機","magnifyingglass":"放大鏡","candle":"蠟燭","lightbulb":"電燈泡","flashlight":"手電筒","book":"書","notebook":"筆記本","ledger":"分類帳","coin":"硬幣","bill":"鈔票","creditcard":"信用卡","receipt":"收據","package":"包裹","mailbox":"郵筒","pencil":"鉛筆","pen":"鋼筆","ballpoint":"原子筆","paintbrush":"畫筆","crayon":"蠟筆","briefcase":"公事包","calendar":"日曆","pushpin":"圖釘","paperclip":"迴紋針","ruler":"直尺","triangleruler":"三角板","scissors":"黑色剪刀","trashcan":"垃圾桶","lock":"鎖頭","key":"鑰匙","hammer":"鐵鎚","axe":"斧頭","pickaxe":"十字鎬","boomerang":"迴力鏢","bowandarrow":"弓箭","shield":"盾牌","saw":"手鋸","wrench":"扳手","screwdriver":"螺絲起子","nutandbolt":"螺帽與螺栓","gear":"齒輪","scales":"天平","hook":"鉤子","toolbox":"工具箱","magnet":"磁鐵","ladder":"梯子","testtube":"試管","telescope":"望遠鏡","satellite":"衛星","syringe":"注射器","droplet":"血滴","pill":"藥丸","cane":"拐杖","stethoscope":"聽診器","X-ray":"X光片","door":"門","elevator":"電梯","mirror":"鏡子","window":"窗戶","bed":"床鋪","chair":"椅子","toilet":"馬桶","shower":"淋浴","bath":"浴缸","broom":"掃把","basket":"籃子","toiletpaper":"紙捲","bucket":"水桶","soap":"肥皂","bubbles":"泡泡","toothbrush":"牙刷","sponge":"海綿","fireextinguisher":"滅火器","shoppingcart":"購物車","tombstone":"墓碑","IDcard":"身分證","earth":"地球","map":"世界地圖","compass":"指南針","mountain":"山脈","volcano":"火山","camping":"露營","parasol":"陽傘","desert":"沙漠","island":"無人島","brick":"磚塊","rock":"岩石","wood":"木材","hut":"茅草屋","house":"房子","hospital":"醫院","bank":"銀行","hotel":"飯店","conveniencestore":"便利商店","school":"學校","factory":"工廠","chuch":"教堂","shrine":"神社","fountain":"噴泉","tent":"帳篷","sunrise":"日出","sunset":"日落","hotspring":"溫泉","carousel":"旋轉木馬","slide":"滑梯","ferriswheel":"摩天輪","rollercoaster":"雲霄飛車","circus":"馬戲團","steamtrain":"蒸汽火車頭","train":"火車","high-speedtrain":"高速鐵路列車","subway":"地下鐵路","lightrail":"輕軌鐵路","bus":"公車","ambulance":"救護車","firetruck":"消防車","policecar":"警車","taxi":"計程車","car":"汽車","smalltruck":"小貨車","truck":"卡車","tractor":"拖拉機","racecar":"賽車","motorcycle":"摩托車","bicycle":"腳踏車","scooter":"滑板車","skateboard":"滑板","rollerskates":"溜冰鞋","highway":"高速公路","railroadtracks":"鐵軌","oilbarrel":"油桶","carwheel":"車輪","warninglight":"警示燈","trafficlight":"紅綠燈","construction":"施工","anchor":"船錨","lifesaver":"救生圈","sailboat":"帆船","canoe":"獨木舟","ship":"船隻","airplane":"飛機","parachute":"降落傘","helicopter":"直昇機","cablecar":"纜車","satellite":"衛星","rocket":"火箭","UFO":"幽浮","servicebell":"服務鈴","luggage":"行李","sandtimer":"沙漏","watch":"手錶","alarmclock":"鬧鐘","timer":"碼錶","clock":"時鐘","moon":"月亮","sun":"太陽","planet":"星球","star":"星星","shootingstar":"流星","cloud":"雲朵","lightning":"閃電","tornado":"龍捲風","rainbow":"彩虹","umbrella":"雨傘","beachumbrella":"海灘傘","snowflake":"雪花","snowman":"雪人","comet":"彗星","fire":"火","waterdroplet":"水滴"
+
+
+
+
+        };
+
+        let chosenWord = words[Math.floor(Math.random() * words.length)];
+
+        function updateWordDisplay() {
+            document.getElementById("wordDisplay").textContent = chosenWord;
+            document.getElementById("wordTranslation").textContent = wordTranslations[chosenWord] || "未知";
+            document.getElementById("nextLetter").textContent = chosenWord[0];
+        }
+
+        updateWordDisplay();
+        
+        let snake = [
+            {x: 200, y: 200},
+            {x: 170, y: 200},
+            {x: 140, y: 200},
+            {x: 110, y: 200}
+        ];
+        let direction = {x: 30, y: 0};
+        let letters = [];
+        let collected = "";
+        let gameRunning = false;
+        let startTime, endTime;
+
+        function startGame() {
+            let inputWord = document.getElementById("wordInput").value.toLowerCase();
+            if (inputWord === chosenWord) {
+                gameRunning = true;
+                collected = "";
+                document.getElementById("collectedLetters").textContent = "";
+                document.getElementById("wordInput").disabled = true;
+                document.getElementById("gameTime").textContent = ""; 
+                startTime = new Date(); 
+                placeLetters();
+                gameLoop();
+            }
+        }
+
+        function placeLetters() {
+            letters = [];
+            let positions = new Set();
+            chosenWord.split('').forEach(letter => {
+                let x, y, pos;
+                do {
+                    x = Math.floor(Math.random() * (800 / 30)) * 30; 
+                    y = Math.floor(Math.random() * (600 / 30)) * 30;
+                    pos = `${x},${y}`;
+                } while (positions.has(pos)); 
+                positions.add(pos);
+                letters.push({ x, y, letter });
+            });
+        }
+
+        function gameLoop() {
+            if (!gameRunning) return;
+            setTimeout(() => {
+                moveSnake();
+                checkCollision();
+                drawGame();
+                gameLoop();
+            }, 120);
+        }
+
+        function moveSnake() {
+            let newHead = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+            if (newHead.x >= 800) newHead.x = 0;
+            if (newHead.x < 0) newHead.x = 780;
+            if (newHead.y >= 600) newHead.y = 0;
+            if (newHead.y < 0) newHead.y = 580;
+            snake.unshift(newHead);
+            if (collected.length < snake.length - 4) {
+                snake.pop();
+            }
+        }
+
+        function checkCollision() {
+            let head = snake[0];
+            let index = letters.findIndex(l => Math.abs(l.x - head.x) < 20 && Math.abs(l.y - head.y) < 20);
+            if (index !== -1) {
+                if (letters[index].letter === chosenWord[collected.length]) {
+                    collected += letters[index].letter;
+                    document.getElementById("collectedLetters").textContent = collected;
+                    document.getElementById("nextLetter").textContent = chosenWord[collected.length] || "✔";
+                    letters.splice(index, 1); 
+                    snake.push({x: snake[snake.length - 1].x, y: snake[snake.length - 1].y}); 
+                }
+            }
+    if (collected === chosenWord && gameRunning) {
+        // 當玩家完成字詞後，延遲 1 秒再結束遊戲
+        endTime = new Date();
+        let gameTime = Math.floor((endTime - startTime) / 1000);
+        
+        // 延遲 1 秒後結束遊戲
+        gameRunning = false;  // 防止重複觸發
+        setTimeout(() => {
+            alert("You win!");
+            document.getElementById("gameTime").textContent = `Game Time：${gameTime} sec`;
+        }, 1000);  // 延遲 1 秒後顯示勝利訊息
+    }
+        }
+
+        function drawGame() {
+            let canvas = document.getElementById("gameCanvas");
+            let ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height); 
+            
+            snake.forEach((segment, i) => {
+                ctx.beginPath();
+                ctx.fillStyle = i === 0 ? "#1E90FF" : "#87CEFA"; 
+                ctx.arc(segment.x + 15, segment.y + 15, 15, 0, Math.PI * 2); 
+                ctx.fill();
+                ctx.closePath();
+                
+                if (i === 0) {
+                    ctx.fillStyle = "black";
+                    ctx.beginPath();
+                    ctx.arc(segment.x + 10, segment.y + 10, 3, 0, Math.PI * 2);
+                    ctx.arc(segment.x + 20, segment.y + 10, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = "black";
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(segment.x + 15, segment.y + 20, 6, 0, Math.PI);
+                    ctx.stroke();
+                }
+            });
+
+            ctx.fillStyle = "red";
+            ctx.font = "30px Arial";
+            letters.forEach(letter => {
+                ctx.fillText(letter.letter.toUpperCase(), letter.x + 5, letter.y + 25);
+            });
+        }
+
+        function restartGame() {
+            document.getElementById("wordInput").value = "";
+            document.getElementById("wordInput").disabled = false;
+            document.getElementById("collectedLetters").textContent = "";
+            document.getElementById("gameTime").textContent = "";
+            collected = "";
+            chosenWord = words[Math.floor(Math.random() * words.length)];
+            updateWordDisplay(); 
+            snake = [{x: 200, y: 200}, {x: 170, y: 200}, {x: 140, y: 200}, {x: 110, y: 200}];
+            direction = {x: 30, y: 0};
+            gameRunning = false;
+        }
+
+        document.addEventListener("keydown", event => {
+            if (event.key.startsWith("Arrow")) direction = {x: event.key === "ArrowLeft" ? -30 : event.key === "ArrowRight" ? 30 : 0, y: event.key === "ArrowUp" ? -30 : event.key === "ArrowDown" ? 30 : 0};
+        });
+    </script>程式作者：老師 Ver.20250401
+</body>
+</html>

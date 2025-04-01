@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>翻卡牌配對記憶遊戲</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f8ff;
+            font-family: Arial, sans-serif;
+        }
+        .game-container {
+            display: grid;
+            grid-template-columns: repeat(4, 200px); /* 將列大小改為 200px */
+            grid-template-rows: repeat(3, 200px); /* 將行大小改為 200px */
+            gap: 10px;
+            perspective: 1000px;
+        }
+        .card {
+            width: 200px; /* 卡牌寬度改為 200px */
+            height: 200px; /* 卡牌高度改為 200px */
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+        }
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+        .card .front, .card .back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px; /* 放大 emoji 圖案 */
+            text-align: center;
+            user-select: none;
+        }
+        .card .back {
+            background-color: #ffcc80;
+            font-size: 80px; /* 放大 emoji 圖案 */
+        }
+
+        .card .front {
+            background-color: lightgray;
+            transform: rotateY(180deg);
+        }
+        .card.matched .front {
+            background-color: lightblue !important;
+        }
+
+        .controls {
+            margin-top: 20px;
+            font-size: 20px;
+        }
+        button {
+            background-color: #4CAF50; /* 綠色背景 */
+            color: white; /* 白色文字 */
+            font-size: 18px; /* 文字大小 */
+            padding: 15px 32px; /* 內邊距 */
+            border: none; /* 去除邊框 */
+            border-radius: 8px; /* 圓角 */
+            cursor: pointer; /* 當滑鼠放到按鈕上時顯示為指標 */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 輕微陰影 */
+            transition: background-color 0.3s, transform 0.2s; /* 動畫效果 */
+        }
+
+        button:hover {
+            background-color: #45a049; /* 滑鼠懸停時改變顏色 */
+            transform: translateY(-2px); /* 鼠標懸停時微微上移 */
+        }
+
+        button:active {
+            background-color: #388e3c; /* 點擊時顏色變暗 */
+            transform: translateY(2px); /* 點擊時下移 */
+        }
+
+        button:disabled {
+            background-color: #a5d6a7; /* 禁用時的顏色 */
+            cursor: not-allowed; /* 禁用時鼠標樣式 */
+        }
+
+    </style>
+</head>
+<body>
+    <h1>翻卡牌配對記憶遊戲(剩餘時間：<span id="timer">60</span> 秒)</h1>
+    <div class="game-container" id="game"></div>
+    <div class="controls">
+        <p id="result"></p>
+        <button id="restartButton" onclick="startGame()" disabled>重新開始</button>
+    </div>
+    <script>
+        const words = [
+["🍇", "grapes"], ["🐒", "Monkey"], ["🦍", "Gorilla"], ["🐕", "Dog"], ["🦊", "Fox"], ["🦝", "Raccoon"], ["🐈", "Cat"], ["🦁", "Lion"], ["🐅", "Tiger"], ["🐆", "Leopard"], ["🐎", "Horse"], ["🦓", "Zebra"], ["🦌", "Deer"], ["🐂", "Ox"], ["🐷", "Pig"], ["🐑", "Sheep"], ["🐐", "Goat"], ["🐫", "Camel"], ["🦙", "Llama"], ["🦒", "Giraffe"], ["🐘", "Elephant"], ["🦏", "Rhinoceros"], ["🦛", "Hippopotamus"], ["🐁", "Mouse"], ["🐇", "Rabbit"], ["🐿️", "Squirrel"], ["🦔", "Hedgehog"], ["🦇", "Bat"], ["🐻", "Bear"],  ["🐨", "Koala"], ["🐼", "Panda"], ["🦥", "Sloth"], ["🦦", "Otter"], ["🦨", "Skunk"], ["🦘", "Kangaroo"], ["🦡", "Badger"], ["🦃", "Turkey"], ["🐓", "Rooster"], ["🐤", "Chick"], ["🐧", "Penguin"], ["🕊️", "Dove"], ["🦅", "Eagle"], ["🦆", "Mallard"], ["🦢", "Swan"], ["🦉", "Owl"], ["🦤", "Dodo"], ["🪶", "Feather"], ["🦩", "Flamingo"], ["🦚", "Peacock"], ["🦜", "Parrot"], ["🐊", "Crocodile"], ["🐢", "Turtle"], ["🦎", "Lizard"], ["🐍", "Snake"], ["🦖", "Dinosaur"], ["🐋", "Whale"], ["🐬", "Dolphin"],  ["🐟", "Fish"], ["🐡", "Pufferfish"], ["🦈", "Shark"], ["🐙", "Octopus"], ["🐚", "Shell"], ["🐌", "Snail"], ["🦋", "Butterfly"], ["🐛", "Worm"], ["🐜", "Ant"], ["🐝", "Bee"],  ["🐞", "Ladybug"], ["🦗", "Cricket"], ["🕷️", "Spider"], ["🕸️", "SpiderWeb"], ["🦂", "Scorpion"], ["🦟", "Mosquito"],["🌸", "CherryBlossom"], ["🌹", "Rose"], ["🌻", "Sunflower"], ["🌼", "Flower"], ["🌷", "Tulip"],  ["🌱", "Seedling"], ["🪴", "PottedPlant"], ["🌳", "Tree"], ["🌴", "PalmTree"], ["🌵", "Cactus"], ["🌾", "Rice"], ["🍄", "Mushroom"], ["🍈", "Melon"], ["🍉", "Watermelon"], ["🍊", "Tangerine"], ["🍋", "Lemon"], ["🍌", "Banana"], ["🍍", "Pineapple"], ["🥭", "Mango"], ["🍎", "Apple"], ["🍐", "Pear"], ["🍑", "Peach"], ["🍒", "Cherry"], ["🍓", "Strawberry"],  ["🥝", "Kiwi"], ["🍅", "Tomato"], ["🥑", "Avocado"], ["🍆", "Eggplant"], ["🥔", "Potato"], ["🥕", "Carrot"], ["🌽", "Corn"], ["🌶️", "Chili"], ["🥒", "Cucumber"], ["🥬", "LeafyGreen"], ["🥦", "Broccoli"], ["🧄", "Garlic"], ["🧅", "Onion"], ["🥜", "Peanut"], ["🌰", "Chestnut"],  ["🍞", "Bread"], ["🥯", "Bagel"], ["🥞", "Pancakes"], ["🧀", "Cheese"], ["🥩", "Steak"], ["🥓", "Bacon"], ["🍔", "Hamburger"], ["🍕", "Pizza"], ["🌭", "HotDog"], ["🥪", "Sandwich"], ["🍳", "Egg"], ["🍿", "Popcorn"], ["🧈", "Butter"], ["🧂", "Salt"], ["🍙", "RiceBall"], ["🍚", "Rice"], ["🍜", "Noodles"], ["🍢", "Oden"], ["🍣", "Sushi"], ["🍡", "RiceDumplings"], ["🥟", "Dumplings"], ["🥠", "FortuneCookie"], ["🦀", "Crab"], ["🦞", "Lobster"], ["🦐", "Shrimp"], ["🦑", "Squid"], ["🦪", "Oyster"], ["🍦", "IceCream"], ["🍨", "Gelato"], ["🍩", "Donut"], ["🍪", "Cookie"], ["🎂", "Cake"], ["🍬", "Candy"], ["🍼", "BabyBottle"], ["🥛", "Milk"], ["🍵", "TeaCup"], ["🍷", "WineGlass"], ["🍺", "BeerMug"], ["🥢", "Chopsticks"], ["🍽️", "PlateandCutlery"], ["🍴", "ForkandKnife"], ["🥄", "Spoon"], ["🎃", "Halloween"], ["🎄", "ChristmasTree"], ["🎆", "Fireworks"], ["🎇", "Sparkler"], ["🧨", "Firecracker"], ["🎈", "Balloon"], ["🎉", "PartyPopper"], ["🎏", "KoiFlag"], ["🎀", "Ribbon"], ["🎁", "Gift"], ["🎫", "Ticket"], ["🎖️", "Medal"], ["🏆", "Trophy"], ["🏅", "AwardMedal"], ["🥇", "GoldMedal"], ["🥈", "SilverMedal"], ["🥉", "BronzeMedal"], ["⚽", "SoccerBall"], ["⚾", "Baseball"], ["🥎", "Softball"], ["🏀", "Basketball"], ["🏐", "Volleyball"], ["🏈", "AmericanFootball"], ["🏉", "Rugby"], ["🎾", "Tennis"], ["🏑", "FieldHockey"],  ["🏸", "Badminton"], ["🥊", "Boxing"], ["⛸️", "IceSkate"], ["🪁", "Kite"], ["🎮", "VideoGame"], ["🎲", "Dice"],  ["🧸", "Teddy"], ["♠️", "Spade"], ["♥️", "Heart"], ["♦️", "Diamond"], ["♣️", "Club"], ["♟️", "Chess"], ["🎨", "Palette"], ["🧵", "Thread"], ["👮", "Policer"], ["🕵️", "Detective"],  ["💂‍♂️", "Guard"], ["👷", "Worker"], ["🎅", "SantaClaus"], ["🧙", "Wizard"], ["🧚", "Fairy"], ["🧛", "Vampire"], ["🧜", "Mermaid"], ["🧟", "Zombie"], ["👰", "Bride"], ["🏃", "Runner"], ["🧗", "RockClimber"], ["🤺", "Fencer"], ["🏇", "HorseRacing"], ["⛷️", "Skier"], ["🏌️", "Golfer"], ["🏄", "Surfer"], ["🚣", "Rowboat"], ["🏊", "Swimmer"], ["🏋️", "Weightlifter"], ["🚴", "Bicyclist"], ["👓", "Glasses"], ["🦺", "LifeJacket"], ["👔", "Necktie"], ["👕", "T-Shirt"], ["👖", "Jeans"], ["🧣", "Scarf"], ["🧤", "Gloves"], ["🧦", "Socks"], ["👗", "Dress"], ["👘", "Kimono"], ["👛", "Purse"], ["👜", "Handbag"], ["👝", "ClutchBag"], ["🎒", "Backpack"], ["👞", "Loafers"], ["👟", "Sneakers"], ["👑", "Crown"], ["📿", "Beads"], ["💄", "Lipstick"], ["💍", "Ring"], ["💎", "Gem"], ["🔊", "Speaker"], ["📢", "Megaphone"], ["🔔", "Bell"], ["🎵", "MusicalNote"], ["🎤", "Microphone"], ["🎧", "Headphones"], ["🎷", "Saxophone"],  ["🎸", "Guitar"], ["🎹", "Keyboard"], ["🎺", "Trumpet"], ["🎻", "Violin"], ["🥁", "Drum"], ["📱", "MobilePhone"], ["🔋", "Battery"], ["🔌", "Plug"], ["💻", "Laptop"], ["🖥️", "Computer"], ["🖨️", "Printer"], ["⌨️", "Keyboard"], ["🖱️", "Mouse"], ["💾", "Floppy"], ["💿", "CD"], ["📺", "Television"], ["📷", "Camera"], ["🔍", "Glass"], ["🕯️", "Candle"], ["💡", "LightBulb"], ["🔦", "Flashlight"], ["📖", "Book"], ["📓", "Notebook"], ["📒", "Ledger"], ["💵", "Dollar"], ["💳", "CreditCard"], ["🧾", "Receipt"], ["📦", "Package"], ["📮", "Mailbox"], ["✏️", "Pencil"],   ["🖌️", "Paintbrush"], ["🖍️", "Crayon"], ["💼", "Briefcase"], ["📅", "Calendar"], ["📌", "Pushpin"], ["🖇️", "Paperclip"], ["📏", "Ruler"], ["📐", "Triangle"], ["✂️", "Scissors"], ["🗑️", "TrashBin"], ["🔒", "Lock"], ["🔑", "Key"], ["🔨", "Hammer"], ["🪓", "Axe"], ["⛏️", "Pickaxe"],  ["🏹", "BowandArrow"], ["🛡️", "Shield"],  ["🔧", "Wrench"], ["🔩", "NutandBolt"], ["⚙️", "Gear"], ["⚖️", "Scales"],  ["🧰", "Toolbox"], ["🧲", "Magnet"], ["🧪", "TestTube"], ["🔭", "Telescope"], ["📡", "Satellite"], ["💉", "Syringe"], ["🩸", "BloodDroplet"], ["💊", "Pill"], ["🩺", "Stethoscope"],  ["🚪", "Door"], ["🛏️", "Bed"], ["🪑", "Chair"], ["🚽", "Toilet"], ["🚿", "Shower"], ["🛁", "Bathtub"], ["🧹", "Broom"], ["🧺", "Basket"], ["🧻", "RollofPaper"], ["🧼", "Soap"], ["🧽", "Sponge"], ["🧯", "FireExtinguisher"], ["🛒", "ShoppingCart"],  ["🌏", "Earth"], ["🗺️", "WorldMap"], ["🧭", "Compass"], ["⛰️", "Mountain"], ["🌋", "Volcano"], ["🏕️", "Camping"], ["🏜️", "Desert"], ["🏝️", "DesertIsland"], ["🧱", "Brick"], ["🏘️", "House"], ["🏥", "Hospital"], ["🏦", "Bank"], ["🏨", "Hotel"], ["🏪", "ConvenienceStore"], ["🏫", "School"], ["🏭", "Factory"], ["⛪", "Church"], ["⛩️", "Shrine"], ["⛲", "Fountain"], ["⛺", "Tent"], ["🌄", "Sunrise"], ["🌇", "Sunset"], ["♨️", "HotSprings"], ["🎠", "Carousel"], ["🎡", "FerrisWheel"], ["🎢", "RollerCoaster"], ["🎪", "Circus"], ["🚂", "Locomotive"], ["🚃", "Train"], ["🚄", "High-SpeedTrain"], ["🚇", "Subway"], ["🚈", "LightRail"], ["🚌", "Bus"], ["🚑", "Ambulance"], ["🚒", "FireTruck"], ["🚓", "PoliceCar"], ["🚕", "Taxi"], ["🚗", "Car"], ["🚛", "Lorry"], ["🚜", "Tractor"], ["🏎️", "RaceCar"], ["🏍️", "Motorcycle"], ["🛵", "Scooter"], ["🚲", "Bicycle"], ["🛣️", "Motorway"], ["🛢️", "OilDrum"], ["🚦", "TrafficLight"], ["🚧", "Construction"], ["⚓", "Anchor"], ["⛵", "Sailboat"], ["🛶", "Canoe"], ["🚢", "Ship"], ["✈️", "Airplane"], ["🪂", "Parachute"], ["🚁", "Helicopter"], ["🚠", "CableCar"], ["🛰️", "Satellite"], ["🚀", "Rocket"], ["🛸", "UFO"], ["🛎️", "ServiceBell"], ["🧳", "Luggage"], ["⌛", "Hourglass"], ["⌚", "Watch"], ["⏰", "AlarmClock"], ["⏱️", "Stopwatch"], ["🕗", "Clock"], ["🌙", "Moon"], ["☀️", "Sun"], ["🪐", "Planet"], ["⭐", "Star"], ["🌠", "ShootingStar"], ["☁️", "Cloud"], ["🌩️", "Lightning"], ["🌪️", "Tornado"], ["🌈", "Rainbow"], ["☂️", "Umbrella"],["⛱️", "BeachUmbrella"], ["❄️", "Snowflake"], ["⛄", "Snowman"], ["☄️", "Comet"], ["🔥", "Fire"], ["💧", "Droplet"]
+        ];
+        let selectedCards = [];
+        let matchedCards = 0;
+        let timeLeft = 60;
+        let timer;
+        let isChecking = false;
+
+        function shuffle(array) {
+            return array.sort(() => Math.random() - 0.5);
+        }
+
+        function startGame() {
+            // 禁用重新開始按鈕，直到遊戲結束
+            document.getElementById('restartButton').disabled = true;
+            
+            clearInterval(timer);
+            document.getElementById('result').innerText = '';
+            timeLeft = 60;
+            document.getElementById('timer').innerText = timeLeft;
+            matchedCards = 0;
+            selectedCards = [];
+            isChecking = false;
+            let gameContainer = document.getElementById('game');
+            gameContainer.innerHTML = '';
+            let selectedPairs = shuffle(words).slice(0, 6);
+            let cardList = shuffle([...selectedPairs.flat()]);
+
+            cardList.forEach(text => {
+                let card = document.createElement('div');
+                card.classList.add('card');
+                card.dataset.value = text;
+                card.innerHTML = `<div class='front'>${text}</div><div class='back'>🥕</div>`;
+                card.addEventListener('click', () => flipCard(card));
+                gameContainer.appendChild(card);
+            });
+
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').innerText = timeLeft;
+                if (timeLeft === 0) {
+                    clearInterval(timer);
+                    document.getElementById('result').innerText = '時間到！挑戰失敗！再挑戰一次？';
+                    document.getElementById('result').style.color = 'red';  // 將文字顏色設為紅色
+                    document.getElementById('timer').style.display = 'none';  // 遊戲時間隱藏
+                    // 遊戲結束後啟用重新開始按鈕
+                    document.getElementById('restartButton').disabled = false;
+                }
+            }, 1000);
+        }
+
+        function flipCard(card) {
+            if (isChecking || selectedCards.length >= 2 || card.classList.contains('flipped')) {
+                return;
+            }
+            card.classList.add('flipped');
+            selectedCards.push(card);
+            if (selectedCards.length === 2) {
+                isChecking = true;
+                setTimeout(() => {
+                    checkMatch();
+                    setTimeout(() => { isChecking = false; }, 500); // 停 0.5 秒後才能翻下一輪
+                }, 500);
+            }
+        }
+
+        function checkMatch() {
+            let [card1, card2] = selectedCards;
+            let pairs = Object.fromEntries(words);
+            if (pairs[card1.dataset.value] === card2.dataset.value ||
+                pairs[card2.dataset.value] === card1.dataset.value) {
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                matchedCards += 2;
+                if (matchedCards === 12) {
+                    clearInterval(timer);
+                    document.getElementById('result').innerText = `挑戰成功！用時 ${60 - timeLeft} 秒`;
+                    // 遊戲結束後啟用重新開始按鈕
+                    document.getElementById('restartButton').disabled = false;
+                }
+            } else {
+                setTimeout(() => {
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                }, 500);
+            }
+            selectedCards = [];
+        }
+
+        startGame();
+    </script>程式作者：老師 Ver.20250401
+</body>
+</html>

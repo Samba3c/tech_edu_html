@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中英卡牌配對遊戲</title>
+    <style>
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f4f4; flex-direction: column; }
+        #game-container { width: 1200px; height: 500px; display: flex; border: 2px solid black; background: white; position: relative; }
+        .column { width: 50%; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .card { width: 200px; height: 80px; margin: 10px; display: flex; align-items: center; justify-content: center; background: lightblue; border: 2px solid #333; cursor: grab; font-size: 24px; transition: all 0.3s ease; }
+        .drop-zone { width: 200px; height: 80px; margin: 10px; background: lightgray; border: 2px dashed #333; display: flex; align-items: center; justify-content: center; font-size: 24px; position: relative; }
+        #result { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; font-weight: bold; display: none; }
+        #timer { font-size: 24px; margin-top: 10px; }
+        #level { font-size: 24px; margin-top: 20px; }
+        #next-level { font-size: 24px; padding: 10px 20px; background-color: lightblue; border: 2px solid #333; cursor: pointer; display: none; }
+        #restart { font-size: 24px; padding: 10px 20px; background-color: lightcoral; border: 2px solid #333; cursor: pointer; display: none; }
+    </style>
+</head>
+<body>
+    <div id="level">第 1 關</div>
+    <div id="timer">剩餘時間: 30 秒</div>
+    <div id="game-container">
+        
+        <div id="english-column" class="column"></div>
+        <div id="chinese-column" class="column"></div>
+        <div id="result"></div>
+    </div>
+    <button id="next-level" onclick="nextLevel()">下一關</button>
+    <button id="restart" onclick="restartGame()">重新挑戰</button>
+    程式作者：老師 Ver.20250401
+    <script>
+        const wordPairs = [
+{ en: "monkey", zh: "猴子" }, { en: "gorilla", zh: "大猩猩" }, { en: "dog", zh: "狗" }, { en: "fox", zh: "狐狸" }, { en: "raccoon", zh: "浣熊" }, { en: "cat", zh: "貓" }, { en: "lion", zh: "獅子" }, { en: "tiger", zh: "老虎" }, { en: "leopard", zh: "豹" }, { en: "moose", zh: "麋鹿" }, { en: "donkey", zh: "驢子" }, { en: "horse", zh: "馬" }, { en: "zebra", zh: "斑馬" }, { en: "deer", zh: "鹿" }, { en: "bison", zh: "野牛" }, { en: "cow", zh: "牛" }, { en: "pig", zh: "豬" }, { en: "sheep", zh: "綿羊" }, { en: "goat", zh: "山羊" }, { en: "camel", zh: "駱駝" }, { en: "alpaca", zh: "羊駝" }, { en: "giraffe", zh: "長頸鹿" }, { en: "elephant", zh: "大象" }, { en: "rhino", zh: "犀牛" }, { en: "hippopotamus", zh: "河馬" }, { en: "mouse", zh: "老鼠" }, { en: "rabbit", zh: "兔子" }, { en: "squirrel", zh: "花栗鼠" }, { en: "beaver", zh: "海狸" }, { en: "hedgehog", zh: "刺蝟" }, { en: "bat", zh: "蝙蝠" }, { en: "bear", zh: "熊" }, { en: "polarbear", zh: "北極熊" }, { en: "koala", zh: "無尾熊" }, { en: "panda", zh: "貓熊" }, { en: "sloth", zh: "樹懶" }, { en: "otter", zh: "水獺" }, { en: "skunk", zh: "臭鼬" }, { en: "kangaroo", zh: "袋鼠" }, { en: "badger", zh: "獾" }, { en: "turkey", zh: "火雞" }, { en: "rooster", zh: "公雞" }, { en: "chick", zh: "小雞" }, { en: "penguin", zh: "企鵝" }, { en: "dove", zh: "鴿子" }, { en: "eagle", zh: "老鷹" }, { en: "duck", zh: "綠頭鴨" }, { en: "swans", zh: "天鵝" }, { en: "owl", zh: "貓頭鷹" }, { en: "dodo", zh: "渡渡鳥" }, { en: "feather", zh: "羽毛" }, { en: "flamingo", zh: "紅鶴" }, { en: "peacock", zh: "孔雀" }, { en: "parrot", zh: "鸚鵡" }, { en: "crow", zh: "烏鴉" }, { en: "goose", zh: "鵝" }, { en: "phoenix", zh: "鳳凰" }, { en: "crocodile", zh: "鱷魚" }, { en: "turtle", zh: "烏龜" }, { en: "lizard", zh: "蜥蜴" }, { en: "snake", zh: "蛇" }, { en: "dinosaur", zh: "恐龍" }, { en: "whale", zh: "鯨魚" }, { en: "dolphin", zh: "海豚" }, { en: "seal", zh: "海豹" }, { en: "fish", zh: "魚" }, { en: "pufferfish", zh: "河豚" }, { en: "shark", zh: "鯊魚" }, { en: "octopus", zh: "章魚" }, { en: "clam", zh: "螺" }, { en: "coral", zh: "珊瑚" }, { en: "jellyfish", zh: "水母" }, { en: "slug", zh: "蝸牛" }, { en: "butterfly", zh: "蝴蝶" }, { en: "insect", zh: "蟲子" }, { en: "ant", zh: "螞蟻" }, { en: "bee", zh: "蜜蜂" }, { en: "beetle", zh: "甲蟲" }, { en: "ladybug", zh: "瓢蟲" }, { en: "cricket", zh: "蟋蟀" }, { en: "cockroach", zh: "蟑螂" }, { en: "spider", zh: "蜘蛛" }, { en: "spiderweb", zh: "蜘蛛網" }, { en: "scorpion", zh: "蠍子" }, { en: "mosquito", zh: "蚊子" }, { en: "fly", zh: "蒼蠅" }, { en: "earthworm", zh: "蚯蚓" }, { en: "cherryblossom", zh: "櫻花" }, { en: "lotus", zh: "蓮花" }, { en: "rose", zh: "玫瑰" }, { en: "sunflower", zh: "向日葵" }, { en: "flower", zh: "花" }, { en: "tulip", zh: "鬱金香" }, { en: "hyacinth", zh: "風信子" }, { en: "sapling", zh: "樹苗" }, { en: "pottedplant", zh: "盆栽" }, { en: "tree", zh: "樹木" }, { en: "palmtree", zh: "棕櫚樹" }, { en: "cactus", zh: "仙人掌" }, { en: "grass", zh: "稻米" }, { en: "birdnest", zh: "鳥巢" }, { en: "mushroom", zh: "蘑菇" }, { en: "grape", zh: "葡萄" }, { en: "cantaloupe", zh: "香瓜" }, { en: "watermelon", zh: "西瓜" }, { en: "orange", zh: "柑橘" }, { en: "lemon", zh: "檸檬" }, { en: "banana", zh: "香蕉" }, { en: "pineapple", zh: "鳳梨" }, { en: "mango", zh: "芒果" }, { en: "apple", zh: "蘋果" }, { en: "pear", zh: "梨子" }, { en: "peach", zh: "桃子" }, { en: "cherry", zh: "櫻桃" }, { en: "strawberry", zh: "草莓" }, { en: "blueberry", zh: "藍莓" }, { en: "kiwi", zh: "奇異果" }, { en: "tomato", zh: "番茄" }, { en: "avocado", zh: "酪梨" }, { en: "eggplant", zh: "茄子" }, { en: "potato", zh: "馬鈴薯" }, { en: "carrot", zh: "紅蘿蔔" }, { en: "corn", zh: "玉米" }, { en: "chili", zh: "辣椒" }, { en: "bellpepper", zh: "甜椒" }, { en: "cucumber", zh: "黃瓜" }, { en: "vegetables", zh: "蔬菜" }, { en: "broccoli", zh: "花椰菜" }, { en: "garlic", zh: "大蒜" }, { en: "onion", zh: "洋蔥" }, { en: "peanut", zh: "花生" }, { en: "beans", zh: "豆子" }, { en: "chestnut", zh: "栗子" }, { en: "ginger", zh: "薑" }, { en: "pod", zh: "豆莢" }, { en: "bread", zh: "麵包" }, { en: "bagel", zh: "貝果" }, { en: "pancake", zh: "鬆餅" }, { en: "cheese", zh: "乳酪" }, { en: "steak", zh: "牛排" }, { en: "bacon", zh: "培根" }, { en: "burger", zh: "漢堡" }, { en: "frenchfries", zh: "薯條" }, { en: "pizza", zh: "披薩" }, { en: "hotdog", zh: "熱狗" }, { en: "sandwich", zh: "三明治" }, { en: "egg", zh: "蛋" }, { en: "popcorn", zh: "爆米花" }, { en: "butter", zh: "奶油" }, { en: "salt", zh: "鹽" }, { en: "riceball", zh: "飯糰" }, { en: "rice", zh: "米飯" }, { en: "noodles", zh: "麵食" }, { en: "oden", zh: "關東煮" }, { en: "sushi", zh: "壽司" }, { en: "mochi", zh: "糯米丸子" }, { en: "dumplings", zh: "水餃" }, { en: "fortunecookie", zh: "幸運餅乾" }, { en: "crab", zh: "螃蟹" }, { en: "lobster", zh: "龍蝦" }, { en: "shrimp", zh: "蝦子" }, { en: "squid", zh: "烏賊" }, { en: "oyster", zh: "牡蠣" }, { en: "icecream", zh: "霜淇淋" }, { en: "gelato", zh: "冰淇淋" }, { en: "donut", zh: "甜甜圈" }, { en: "cookie", zh: "餅乾" }, { en: "cake", zh: "蛋糕" }, { en: "candy", zh: "糖果" }, { en: "babybottle", zh: "奶瓶" }, { en: "milk", zh: "牛奶" }, { en: "teapot", zh: "茶壺" }, { en: "cup", zh: "茶碗" }, { en: "wineglass", zh: "酒杯" }, { en: "beer", zh: "啤酒" }, { en: "pearlmilktea", zh: "珍珠奶茶" }, { en: "chopsticks", zh: "筷子" }, { en: "plateandcutlery", zh: "盤子和刀叉" }, { en: "cutlery", zh: "刀叉" }, { en: "spoon", zh: "湯匙" }, { en: "Halloween", zh: "萬聖節" }, { en: "Christmastree", zh: "聖誕樹" }, { en: "fireworks", zh: "煙火" }, { en: "fairystick", zh: "仙女棒" }, { en: "firecrackers", zh: "鞭炮" }, { en: "balloon", zh: "氣球" }, { en: "partypopper", zh: "拉炮" }, { en: "koiflag", zh: "鯉魚旗" }, { en: "ribbon", zh: "緞帶" }, { en: "present", zh: "禮物" }, { en: "ticket", zh: "門票" }, { en: "medal", zh: "勳章" }, { en: "trophy", zh: "獎盃" }, { en: "award", zh: "獎章" }, { en: "goldmedal", zh: "金牌" }, { en: "silvermedal", zh: "銀牌" }, { en: "bronzemedal", zh: "銅牌" }, { en: "soccer", zh: "足球" }, { en: "baseball", zh: "棒球" }, { en: "softball", zh: "壘球" }, { en: "basketball", zh: "籃球" }, { en: "volleyball", zh: "排球" }, { en: "americanfootball", zh: "美式足球" }, { en: "rugby", zh: "橄欖球" }, { en: "tennis", zh: "網球" }, { en: "hockey", zh: "曲棍球" }, { en: "tabletennis", zh: "桌球" }, { en: "badminton", zh: "羽球" }, { en: "boxing", zh: "拳擊" }, { en: "iceskates", zh: "冰刀鞋" }, { en: "fishingrod", zh: "釣竿" }, { en: "sportswear", zh: "運動服" }, { en: "kite", zh: "風箏" }, { en: "magicwand", zh: "魔法棒" }, { en: "videogames", zh: "電玩遊戲" }, { en: "dice", zh: "骰子" }, { en: "puzzle", zh: "拼圖" }, { en: "teddybear", zh: "泰迪熊" }, { en: "spades", zh: "黑桃" }, { en: "hearts", zh: "紅心" }, { en: "diamonds", zh: "方塊" }, { en: "clubs", zh: "梅花" }, { en: "chess", zh: "西洋棋" }, { en: "photoframe", zh: "相框" }, { en: "palette", zh: "調色盤" }, { en: "thread", zh: "線" }, { en: "needle", zh: "針" }, { en: "healthcareworker", zh: "醫護人員" }, { en: "teacher", zh: "老師" }, { en: "judge", zh: "法官" }, { en: "farmworker", zh: "農夫" }, { en: "chef", zh: "廚師" }, { en: "scientist", zh: "科學家" }, { en: "artist", zh: "畫家" }, { en: "pilot", zh: "機長" }, { en: "astronaut", zh: "太空人" }, { en: "firefighter", zh: "消防員" }, { en: "police", zh: "警察" }, { en: "detective", zh: "偵探" }, { en: "guard", zh: "衛兵" }, { en: "ninja", zh: "忍者" }, { en: "worker", zh: "工人" }, { en: "SantaClaus", zh: "聖誕老人" }, { en: "magician", zh: "魔法師" }, { en: "fairy", zh: "小仙子" }, { en: "vampire", zh: "吸血鬼" }, { en: "mermaid", zh: "人魚" }, { en: "zombie", zh: "喪屍" }, { en: "bride", zh: "新娘" }, { en: "running", zh: "跑步" }, { en: "rockclimbing", zh: "攀岩" }, { en: "fencing", zh: "擊劍" }, { en: "horseracing", zh: "賽馬" }, { en: "skiing", zh: "滑雪" }, { en: "golf", zh: "高爾夫球" }, { en: "surfing", zh: "衝浪" }, { en: "boating", zh: "划船" }, { en: "swimming", zh: "游泳" }, { en: "weightlifting", zh: "舉重" }, { en: "bicycle", zh: "腳踏車" }, { en: "items", zh: "物品" }, { en: "glasses", zh: "眼鏡" }, { en: "lifesaver", zh: "救生衣" }, { en: "tie", zh: "領帶" }, { en: "T-shirt", zh: "T恤" }, { en: "jeans", zh: "牛仔褲" }, { en: "scarf", zh: "圍巾" }, { en: "gloves", zh: "手套" }, { en: "socks", zh: "襪子" }, { en: "dress", zh: "洋裝" }, { en: "kimono", zh: "和服" }, { en: "fan", zh: "扇子" }, { en: "wallet", zh: "錢包" }, { en: "handbag", zh: "手提包" }, { en: "pouch", zh: "小袋子" }, { en: "shoppingbag", zh: "購物袋" }, { en: "backpack", zh: "書包" }, { en: "sandals", zh: "涼鞋" }, { en: "leathershoes", zh: "皮鞋" }, { en: "sneakers", zh: "運動鞋" }, { en: "crown", zh: "皇冠" }, { en: "prayerbeads", zh: "佛珠" }, { en: "lipstick", zh: "口紅" }, { en: "ring", zh: "戒指" }, { en: "gem", zh: "寶石" }, { en: "loudspeaker", zh: "喇叭" }, { en: "megaphone", zh: "大聲公" }, { en: "bell", zh: "鈴鐺" }, { en: "notes", zh: "音符" }, { en: "microphone", zh: "麥克風" }, { en: "headphones", zh: "耳機" }, { en: "saxophone", zh: "薩克斯風" }, { en: "accordion", zh: "手風琴" }, { en: "guitar", zh: "吉他" }, { en: "keyboard", zh: "鍵盤" }, { en: "trumpet", zh: "小號" }, { en: "violin", zh: "小提琴" }, { en: "drums", zh: "鼓" }, { en: "maraca", zh: "沙槌" }, { en: "flute", zh: "笛子" }, { en: "cellphone", zh: "手機" }, { en: "battery", zh: "電池" }, { en: "plug", zh: "插頭" }, { en: "laptop", zh: "筆記型電腦" }, { en: "desktop", zh: "桌上型電腦" }, { en: "printer", zh: "印表機" }, { en: "keyboard", zh: "鍵盤" }, { en: "computermouse", zh: "電腦滑鼠" }, { en: "floppydisk", zh: "磁碟片" }, { en: "CD", zh: "光碟" }, { en: "TV", zh: "電視" }, { en: "camera", zh: "相機" }, { en: "magnifyingglass", zh: "放大鏡" }, { en: "candle", zh: "蠟燭" }, { en: "lightbulb", zh: "電燈泡" }, { en: "flashlight", zh: "手電筒" }, { en: "book", zh: "書" }, { en: "notebook", zh: "筆記本" }, { en: "ledger", zh: "分類帳" }, { en: "coin", zh: "硬幣" }, { en: "bill", zh: "鈔票" }, { en: "creditcard", zh: "信用卡" }, { en: "receipt", zh: "收據" }, { en: "package", zh: "包裹" }, { en: "mailbox", zh: "郵筒" }, { en: "pencil", zh: "鉛筆" }, { en: "pen", zh: "鋼筆" }, { en: "ballpoint", zh: "原子筆" }, { en: "paintbrush", zh: "畫筆" }, { en: "crayon", zh: "蠟筆" }, { en: "briefcase", zh: "公事包" }, { en: "calendar", zh: "日曆" }, { en: "pushpin", zh: "圖釘" }, { en: "paperclip", zh: "迴紋針" }, { en: "ruler", zh: "直尺" }, { en: "triangleruler", zh: "三角板" }, { en: "scissors", zh: "黑色剪刀" }, { en: "trashcan", zh: "垃圾桶" }, { en: "lock", zh: "鎖頭" }, { en: "key", zh: "鑰匙" }, { en: "hammer", zh: "鐵鎚" }, { en: "axe", zh: "斧頭" }, { en: "pickaxe", zh: "十字鎬" }, { en: "boomerang", zh: "迴力鏢" }, { en: "bowandarrow", zh: "弓箭" }, { en: "shield", zh: "盾牌" }, { en: "saw", zh: "手鋸" }, { en: "wrench", zh: "扳手" }, { en: "screwdriver", zh: "螺絲起子" }, { en: "nutandbolt", zh: "螺帽與螺栓" }, { en: "gear", zh: "齒輪" }, { en: "scales", zh: "天平" }, { en: "hook", zh: "鉤子" }, { en: "toolbox", zh: "工具箱" }, { en: "magnet", zh: "磁鐵" }, { en: "ladder", zh: "梯子" }, { en: "testtube", zh: "試管" }, { en: "telescope", zh: "望遠鏡" }, { en: "satellite", zh: "衛星" }, { en: "syringe", zh: "注射器" }, { en: "droplet", zh: "血滴" }, { en: "pill", zh: "藥丸" }, { en: "cane", zh: "拐杖" }, { en: "stethoscope", zh: "聽診器" }, { en: "X-ray", zh: "X光片" }, { en: "door", zh: "門" }, { en: "elevator", zh: "電梯" }, { en: "mirror", zh: "鏡子" }, { en: "window", zh: "窗戶" }, { en: "bed", zh: "床鋪" }, { en: "chair", zh: "椅子" }, { en: "toilet", zh: "馬桶" }, { en: "shower", zh: "淋浴" }, { en: "bath", zh: "浴缸" }, { en: "broom", zh: "掃把" }, { en: "basket", zh: "籃子" }, { en: "toiletpaper", zh: "紙捲" }, { en: "bucket", zh: "水桶" }, { en: "soap", zh: "肥皂" }, { en: "bubbles", zh: "泡泡" }, { en: "toothbrush", zh: "牙刷" }, { en: "sponge", zh: "海綿" }, { en: "fireextinguisher", zh: "滅火器" }, { en: "shoppingcart", zh: "購物車" }, { en: "tombstone", zh: "墓碑" }, { en: "IDcard", zh: "身分證" }, { en: "earth", zh: "地球" }, { en: "map", zh: "世界地圖" }, { en: "compass", zh: "指南針" }, { en: "mountain", zh: "山脈" }, { en: "volcano", zh: "火山" }, { en: "camping", zh: "露營" }, { en: "parasol", zh: "陽傘" }, { en: "desert", zh: "沙漠" }, { en: "island", zh: "無人島" }, { en: "brick", zh: "磚塊" }, { en: "rock", zh: "岩石" }, { en: "wood", zh: "木材" }, { en: "hut", zh: "茅草屋" }, { en: "house", zh: "房子" }, { en: "hospital", zh: "醫院" }, { en: "bank", zh: "銀行" }, { en: "hotel", zh: "飯店" }, { en: "conveniencestore", zh: "便利商店" }, { en: "school", zh: "學校" }, { en: "factory", zh: "工廠" }, { en: "chuch", zh: "教堂" }, { en: "shrine", zh: "神社" }, { en: "fountain", zh: "噴泉" }, { en: "tent", zh: "帳篷" }, { en: "sunrise", zh: "日出" }, { en: "sunset", zh: "日落" }, { en: "hotspring", zh: "溫泉" }, { en: "carousel", zh: "旋轉木馬" }, { en: "slide", zh: "滑梯" }, { en: "ferriswheel", zh: "摩天輪" }, { en: "rollercoaster", zh: "雲霄飛車" }, { en: "circus", zh: "馬戲團" }, { en: "steamtrain", zh: "蒸汽火車頭" }, { en: "train", zh: "火車" }, { en: "high-speedtrain", zh: "高速鐵路列車" }, { en: "subway", zh: "地下鐵路" }, { en: "lightrail", zh: "輕軌鐵路" }, { en: "bus", zh: "公車" }, { en: "ambulance", zh: "救護車" }, { en: "firetruck", zh: "消防車" }, { en: "policecar", zh: "警車" }, { en: "taxi", zh: "計程車" }, { en: "car", zh: "汽車" }, { en: "smalltruck", zh: "小貨車" }, { en: "truck", zh: "卡車" }, { en: "tractor", zh: "拖拉機" }, { en: "racecar", zh: "賽車" }, { en: "motorcycle", zh: "摩托車" }, { en: "bicycle", zh: "腳踏車" }, { en: "scooter", zh: "滑板車" }, { en: "skateboard", zh: "滑板" }, { en: "rollerskates", zh: "溜冰鞋" }, { en: "highway", zh: "高速公路" }, { en: "railroadtracks", zh: "鐵軌" }, { en: "oilbarrel", zh: "油桶" }, { en: "carwheel", zh: "車輪" }, { en: "warninglight", zh: "警示燈" }, { en: "trafficlight", zh: "紅綠燈" }, { en: "construction", zh: "施工" }, { en: "anchor", zh: "船錨" }, { en: "lifesaver", zh: "救生圈" }, { en: "sailboat", zh: "帆船" }, { en: "canoe", zh: "獨木舟" }, { en: "ship", zh: "船隻" }, { en: "airplane", zh: "飛機" }, { en: "parachute", zh: "降落傘" }, { en: "helicopter", zh: "直昇機" }, { en: "cablecar", zh: "纜車" }, { en: "satellite", zh: "衛星" }, { en: "rocket", zh: "火箭" }, { en: "UFO", zh: "幽浮" }, { en: "servicebell", zh: "服務鈴" }, { en: "luggage", zh: "行李" }, { en: "sandtimer", zh: "沙漏" }, { en: "watch", zh: "手錶" }, { en: "alarmclock", zh: "鬧鐘" }, { en: "timer", zh: "碼錶" }, { en: "clock", zh: "時鐘" }, { en: "moon", zh: "月亮" }, { en: "sun", zh: "太陽" }, { en: "planet", zh: "星球" }, { en: "star", zh: "星星" }, { en: "shootingstar", zh: "流星" }, { en: "cloud", zh: "雲朵" }, { en: "lightning", zh: "閃電" }, { en: "tornado", zh: "龍捲風" }, { en: "rainbow", zh: "彩虹" }, { en: "umbrella", zh: "雨傘" }, { en: "beachumbrella", zh: "海灘傘" }, { en: "snowflake", zh: "雪花" }, { en: "snowman", zh: "雪人" }, { en: "comet", zh: "彗星" }, { en: "fire", zh: "火" }, { en: "waterdroplet", zh: "水滴" }
+        ];
+
+        let selectedWords = [];
+        let matchedCount = 0;
+        let timeLeft = 30;
+        let timer;
+        let currentLevel = 1;
+        let isGameOver = false;
+
+        function startGame() {
+            selectedWords = wordPairs.sort(() => Math.random() - 0.5).slice(0, 4);
+            matchedCount = 0;
+            isGameOver = false;
+            document.getElementById("english-column").innerHTML = "";
+            document.getElementById("chinese-column").innerHTML = "";
+            document.getElementById("result").style.display = "none";
+            document.getElementById("next-level").style.display = "none"; // 隱藏下一關按鈕
+            document.getElementById("restart").style.display = "none"; // 隱藏重新挑戰按鈕
+
+            selectedWords.forEach((word, index) => {
+                let engCard = document.createElement("div");
+                engCard.className = "card";
+                engCard.textContent = word.en;
+                engCard.draggable = true;
+                engCard.id = "eng-" + index;
+                engCard.ondragstart = drag;
+                document.getElementById("english-column").appendChild(engCard);
+            });
+
+            let shuffledChinese = [...selectedWords].sort(() => Math.random() - 0.5);
+            shuffledChinese.forEach((word, index) => {
+                let dropZone = document.createElement("div");
+                dropZone.className = "drop-zone";
+                dropZone.textContent = word.zh;
+                dropZone.ondragover = allowDrop;
+                dropZone.ondrop = drop;
+                dropZone.dataset.pair = word.en;
+                document.getElementById("chinese-column").appendChild(dropZone);
+            });
+
+            document.getElementById("level").textContent = `第 ${currentLevel} 關`; // 顯示關卡
+            document.getElementById("timer").textContent = `剩餘時間: ${timeLeft} 秒`;
+
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById("timer").textContent = `剩餘時間: ${timeLeft} 秒`;
+                if (timeLeft <= 0) endGame(false);
+            }, 1000);
+        }
+
+        function allowDrop(event) {
+            if (isGameOver) return;
+            event.preventDefault();
+        }
+
+        function drag(event) {
+            if (isGameOver) return;
+            event.dataTransfer.setData("text", event.target.id);
+        }
+
+        function drop(event) {
+            if (isGameOver) return;
+            event.preventDefault();
+            let draggedId = event.dataTransfer.getData("text");
+            let draggedElement = document.getElementById(draggedId);
+            if (draggedElement.textContent === event.target.dataset.pair) {
+                event.target.textContent = draggedElement.textContent;
+                event.target.style.background = "lightgreen";
+                draggedElement.draggable = false;
+                draggedElement.style.opacity = "0.5";
+                matchedCount++;
+                if (matchedCount === 4) endGame(true);
+            } else {
+                draggedElement.style.transition = "transform 0.5s";
+                draggedElement.style.transform = "translateX(-200px)";
+                setTimeout(() => {
+                    draggedElement.style.transform = "translateX(0)";
+                }, 500);
+            }
+        }
+
+        function endGame(success) {
+            clearInterval(timer);
+            isGameOver = true;
+            let resultText = success ? "成功!" : "失敗!";
+            document.getElementById("result").textContent = resultText;
+            document.getElementById("result").style.display = "block";
+            if (success) {
+                document.getElementById("next-level").style.display = "block"; // 顯示下一關按鈕
+            } else {
+                document.getElementById("restart").style.display = "block"; // 顯示重新挑戰按鈕
+            }
+        }
+
+        function nextLevel() {
+            currentLevel++; // 過關後，關卡數字增加
+
+            // 根據關卡數來設定時間
+            if (currentLevel === 2) {
+                timeLeft = 25;
+            } else if (currentLevel === 3) {
+                timeLeft = 20;
+            } else if (currentLevel === 4) {
+                timeLeft = 15;
+            } else if (currentLevel === 5) {
+                timeLeft = 10;
+            } else if (currentLevel >= 6) {
+                timeLeft = 7;
+            }
+
+            startGame(); // 開始新一關
+        }
+
+        function restartGame() {
+            currentLevel = 1; // 重置關卡
+            timeLeft = 30; // 重置時間
+            startGame(); // 重新開始遊戲
+        }
+
+        startGame();
+    </script>
+</body>
+</html>

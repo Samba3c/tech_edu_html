@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>國小三年級資訊教育補充練習(遊戲集)</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f39c12;
+            --background-color: #f5f6fa;
+            --text-color: #2c3e50;
+            --basic-section-color: #e8f5e9;
+            --intermediate-section-color: #fff3e0;
+            --advanced-section-color: #fbe9e7;
+            --expert-section-color: #e8eaf6;
+            --teacher-concept-color: #e3f2fd;
+            --teacher-guide-color: #f3e5f5;
+            --teacher-suggestion-color: #e0f2f1;
+            --system-requirements-color: #fce4ec;
+        }
+        
+        body {
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            font-size: 18px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #4a90e2, #2196f3, #1a2a6c);
+            background-size: 400% 400%;
+            animation: gradientBG 20s ease infinite;
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: lightPass 8s ease-in-out infinite;
+        }
+
+        @keyframes lightPass {
+            0% { left: -100%; }
+            20%, 100% { left: 100%; }
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        header h1 {
+            font-size: 2.8rem;
+            color: white;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5),
+                         0 0 20px rgba(255,255,255,0.3),
+                         0 0 30px rgba(255,255,255,0.1);
+            margin-bottom: 1rem;
+            letter-spacing: 2px;
+            position: relative;
+            animation: glowPulse 4s ease-in-out infinite;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% {
+                text-shadow: 0 0 10px rgba(255,255,255,0.5),
+                            0 0 20px rgba(255,255,255,0.3),
+                            0 0 30px rgba(255,255,255,0.1);
+            }
+            50% {
+                text-shadow: 0 0 20px rgba(255,255,255,0.8),
+                            0 0 30px rgba(255,255,255,0.5),
+                            0 0 40px rgba(255,255,255,0.3);
+            }
+        }
+
+        header h1::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: -5px;
+            width: 0;
+            height: 2px;
+            background: #fff;
+            transform: translateX(-50%);
+            animation: underlineExpand 4s ease-in-out infinite;
+        }
+
+        @keyframes underlineExpand {
+            0%, 100% { width: 0; }
+            50% { width: 80%; }
+        }
+
+        header p {
+            font-size: 1.4rem;
+            color: rgba(255,255,255,0.9);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        nav {
+            background-color: #fff;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            margin: 0 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 1.2rem;
+        }
+
+        nav button:hover {
+            background-color: #357abd;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            position: relative;
+            text-align: center;
+            margin: 2rem 0;
+            padding-bottom: 0.5rem;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 2px;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .game-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            font-size: 1.1rem;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .game-card h3 {
+            color: var(--primary-color);
+            margin-top: 0;
+            font-size: 1.6rem;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+
+        .game-card h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: var(--secondary-color);
+            transition: width 0.3s ease;
+        }
+
+        .game-card:hover h3::after {
+            width: 100%;
+        }
+
+        .difficulty {
+            color: var(--secondary-color);
+            margin: 0.5rem 0;
+            font-size: 1.2rem;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .teacher-info {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            margin-top: 2rem;
+        }
+
+        .game-link {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            transition: background-color 0.3s;
+        }
+
+        .game-link:hover {
+            background-color: #357abd;
+        }
+
+        h3 {
+            font-size: 1.8rem;
+        }
+
+        h4 {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            border-left: 4px solid var(--secondary-color);
+            padding-left: 1rem;
+            margin: 1.5rem 0;
+            transition: all 0.3s ease;
+        }
+
+        h4:hover {
+            transform: translateX(5px);
+            color: var(--secondary-color);
+        }
+
+        ul, ol {
+            font-size: 1.1rem;
+        }
+
+        .difficulty-section {
+            margin: 2rem 0;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .difficulty-section h3, .teacher-section h3 {
+            font-size: 1.8rem;
+            background: rgba(255,255,255,0.7);
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 0 auto 1.5rem;
+            max-width: 80%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .difficulty-section h3::before, .teacher-section h3::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255,255,255,0.2),
+                transparent
+            );
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            to {
+                left: 100%;
+            }
+        }
+
+        .basic-section {
+            background-color: var(--basic-section-color);
+            border: 2px solid #81c784;
+        }
+
+        .intermediate-section {
+            background-color: var(--intermediate-section-color);
+            border: 2px solid #ffb74d;
+        }
+
+        .advanced-section {
+            background-color: var(--advanced-section-color);
+            border: 2px solid #ff8a65;
+        }
+
+        .expert-section {
+            background-color: var(--expert-section-color);
+            border: 2px solid #7986cb;
+        }
+
+        .difficulty-section .games-grid {
+            margin-top: 1rem;
+        }
+
+        .teacher-section {
+            margin: 2rem 0;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .concept-section {
+            background-color: var(--teacher-concept-color);
+            border: 2px solid #64b5f6;
+            margin: 2rem 0;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .guide-section {
+            background-color: var(--teacher-guide-color);
+            border: 2px solid #ba68c8;
+            margin: 2rem 0;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .suggestion-section {
+            background-color: var(--teacher-suggestion-color);
+            border: 2px solid #4db6ac;
+            margin: 2rem 0;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .concept-section::before,
+        .guide-section::before,
+        .suggestion-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: shine 3s infinite;
+        }
+
+        .concept-section:hover,
+        .guide-section:hover,
+        .suggestion-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+        }
+
+        .concept-section h3,
+        .guide-section h3,
+        .suggestion-section h3 {
+            color: var(--text-color);
+            text-align: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid rgba(0,0,0,0.1);
+        }
+
+        .concept-section ul,
+        .guide-section ul,
+        .suggestion-section ul,
+        .concept-section ol,
+        .guide-section ol,
+        .suggestion-section ol {
+            margin: 1rem 0;
+            padding-left: 2rem;
+        }
+
+        .concept-section li,
+        .guide-section li,
+        .suggestion-section li {
+            margin: 0.5rem 0;
+            line-height: 1.6;
+        }
+
+        .guide-section h4 {
+            background: rgba(255,255,255,0.7);
+            padding: 0.8rem 1.2rem;
+            border-radius: 8px;
+            margin: 1.5rem 0 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .guide-section h4:hover {
+            background: rgba(255,255,255,0.9);
+            transform: translateX(10px);
+        }
+
+        .guide-section strong {
+            color: var(--primary-color);
+        }
+
+        .teacher-section ul, .teacher-section ol {
+            margin: 1rem 0;
+            padding-left: 2rem;
+        }
+
+        .teacher-section li {
+            margin: 0.5rem 0;
+        }
+
+        .system-requirements {
+            background-color: var(--system-requirements-color);
+            border: 2px solid #ec407a;
+            margin: 2rem 0;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .system-requirements::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: shine 3s infinite;
+        }
+
+        .system-requirements:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+        }
+
+        .system-requirements h3 {
+            color: var(--text-color);
+            text-align: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>國小三年級資訊教育補充練習(遊戲集)</h1>
+        <p>透過遊戲融入英文，學習滑鼠操作與鍵盤輸入</p>
+    </header>
+
+    <nav>
+        <button onclick="showSection('student')">學生專區</button>
+        <button onclick="showSection('teacher')">教師專區</button>
+    </nav>
+
+    <div class="container">
+        <div id="student-section" class="section active">
+            <h2>遊戲列表</h2>
+            
+            <div class="difficulty-section basic-section">
+                <h3>基礎練習遊戲 ⭐</h3>
+                <div class="games-grid">
+                    <div class="game-card">
+                        <h3>中文注音指法</h3>
+                        <p class="difficulty">難度：⭐</p>
+                        <p>提供10秒暖身、60秒挑戰、90秒練習模式，幫助你熟練注音輸入！</p>
+                        <a href="A00-中文注音指法（打字練習）.html" class="game-link">開始遊戲</a>
+                    </div>
+
+                    <div class="game-card">
+                        <h3>英文字母指法</h3>
+                        <p class="difficulty">難度：⭐</p>
+                        <p>練習英文字母與數字輸入，透過不同模式提升打字速度！</p>
+                        <a href="A00-英文字母指法（打字練習）.html" class="game-link">開始遊戲</a>
+                    </div>
+
+                    <div class="game-card">
+                        <h3>迷你小畫家</h3>
+                        <p class="difficulty">難度：⭐</p>
+                        <p>使用簡單的繪圖工具，創作屬於你的藝術作品！</p>
+                        <a href="B01-迷你小畫家.html" class="game-link">開始遊戲</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="difficulty-section intermediate-section">
+                <h3>進階練習遊戲 ⭐⭐</h3>
+                <div class="games-grid">
+                    <div class="game-card">
+                        <h3>貪食蛇遊戲</h3>
+                        <p class="difficulty">難度：⭐⭐</p>
+                        <p>輸入英文單字後，用鍵盤控制貪食蛇吃掉對應的字母！</p>
+                        <a href="A02-貪食蛇遊戲（英文單字）.html" class="game-link">開始遊戲</a>
+                    </div>
+
+                    <div class="game-card">
+                        <h3>卡牌記憶遊戲</h3>
+                        <p class="difficulty">難度：⭐⭐</p>
+                        <p>找出配對的英文單字和圖案，眼明手快訓練記憶力！</p>
+                        <a href="A03-卡牌記憶遊戲（英文識字）.html" class="game-link">開始遊戲</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="difficulty-section advanced-section">
+                <h3>挑戰級遊戲 ⭐⭐⭐</h3>
+                <div class="games-grid">
+                    <div class="game-card">
+                        <h3>塔防打怪遊戲</h3>
+                        <p class="difficulty">難度：⭐⭐⭐</p>
+                        <p>用英文字母擊退怪獸，捍衛你的堡壘！
+                        <br>( 小技巧：善用 Combo 連擊，一次擊退多個敵人 )</p>
+                        <a href="A01-塔防打怪遊戲（英文字母）.html" class="game-link">開始遊戲</a>
+                    </div>
+
+                    <div class="game-card">
+                        <h3>卡牌配對挑戰</h3>
+                        <p class="difficulty">難度：⭐⭐⭐</p>
+                        <p>完成英文單字和中文的配對，挑戰無限關卡！</p>
+                        <a href="A04-卡牌配對挑戰（英文識字）.html" class="game-link">開始遊戲</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="difficulty-section expert-section">
+                <h3>專家級遊戲 ⭐⭐⭐⭐</h3>
+                <div class="games-grid">
+                    <div class="game-card">
+                        <h3>射泡泡遊戲</h3>
+                        <p class="difficulty">難度：⭐⭐⭐⭐</p>
+                        <p>快速輸入英文字母，打破泡泡拯救世界！</p>
+                        <a href="A05-射泡泡遊戲（英文字母）.html" class="game-link">開始遊戲</a>
+                    </div>
+
+                    <div class="game-card">
+                        <h3>侏儸紀逃亡</h3>
+                        <p class="difficulty">難度：⭐⭐⭐⭐</p>
+                        <p>輸入英文單字獲得水果，加速逃離恐龍的追捕！</p>
+                        <a href="A06-侏儸紀逃亡(英文單字).html" class="game-link">開始遊戲</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="teacher-section" class="section">
+            <h2>教師指引</h2>
+            <div class="concept-section">
+                <h3>【課程設計理念】</h3>
+                <p>這套遊戲集專為國小三年級學生設計，旨在透過遊戲結合英文及資訊技能，提升學生操作滑鼠、鍵盤輸入等基本資訊能力。所有遊戲都不需要網路連接，可獨立運行，並且不需要安裝任何額外軟體。</p>
+            </div>
+
+            <div class="system-requirements">
+                <h3>【系統環境需求】</h3>
+                <ul>
+                    <li><strong>作業系統</strong>
+                        <ul>
+                            <li>Windows 11</li>
+                        </ul>
+                    </li>
+                    <li><strong>顯示設定</strong>
+                        <ul>
+                            <li>螢幕解析度：1920 x 1080</li>
+                            <li>縮放比例：100%</li>
+                        </ul>
+                    </li>
+                    <li><strong>注意事項</strong>
+                        <ul>
+                            <li>為確保遊戲介面正常顯示，請務必依照建議設定螢幕解析度和縮放比例</li>
+                            <li>若顯示異常，請檢查並調整顯示設定</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+
+            <div class="guide-section">
+                <h3>【遊戲詳細說明】</h3>
+                <h4>基礎練習遊戲（⭐）</h4>
+                <ul>
+                    <li><strong>中文注音指法</strong>
+                        <ul>
+                            <li>配合課程：注音輸入法教學</li>
+                            <li>使用時機：課堂練習或課後複習</li>
+                            <li>特色：真實鍵盤配置、輸入字元顏色指引、錯誤提示，給予不同等級的星等回饋</li>
+                        </ul>
+                    </li>
+                    <li><strong>英文字母指法</strong>
+                        <ul>
+                            <li>配合課程：英文打字入門</li>
+                            <li>使用時機：英文課程輔助教材</li>
+                            <li>特色：多種練習模式，適合初學者</li>
+                        </ul>
+                    </li>
+                    <li><strong>迷你小畫家</strong>
+                        <ul>
+                            <li>配合課程：滑鼠操作入門</li>
+                            <li>使用時機：美術或資訊課程</li>
+                            <li>特色：一個簡單卻強大的繪圖工具，可以選擇畫筆形狀、畫筆大小、顏色挑選、油漆桶填色、清除畫布，並可返回5次動作。可以下載存檔，也可以上傳圖檔繼續繪圖。</li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <h4>【進階練習遊戲（⭐⭐）】</h4>
+                <ul>
+                    <li><strong>貪食蛇遊戲</strong>
+                        <ul>
+                            <li>配合課程：英文單字學習</li>
+                            <li>使用時機：英文課程活動</li>
+                            <li>特色：結合英文拼字和方向鍵操作</li>
+                        </ul>
+                    </li>
+                    <li><strong>卡牌記憶遊戲</strong>
+                        <ul>
+                            <li>配合課程：英文詞彙學習</li>
+                            <li>使用時機：課堂活動或課後練習</li>
+                            <li>特色：訓練滑鼠操作和記憶力，以及英文識字能力。採用 emoji 可愛圖文字，暢通網頁遊戲的進行。</li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <h4>【挑戰級遊戲（⭐⭐⭐）】</h4>
+                <ul>
+                    <li><strong>塔防打怪遊戲</strong>
+                        <ul>
+                            <li>配合課程：英文字母快速識別</li>
+                            <li>使用時機：課堂競賽活動</li>
+                            <li>特色：訓練快速反應和打字準確度，隨機出題的字母砲彈沒有做重複字母的篩選，運氣好的話可以同時發射2個砲彈，甚至同時發射3個。</li>
+                        </ul>
+                    </li>
+                    <li><strong>卡牌配對挑戰</strong>
+                        <ul>
+                            <li>配合課程：英文單字理解</li>
+                            <li>使用時機：課堂評量活動</li>
+                            <li>特色：挑戰英文單字配對，同時考驗滑鼠操作準度，關卡時間愈來愈少，挑戰無限關卡！！</li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <h4>【專家級遊戲（⭐⭐⭐⭐）】</h4>
+                <ul>
+                    <li><strong>射泡泡遊戲</strong>
+                        <ul>
+                            <li>配合課程：英文打字速度訓練</li>
+                            <li>使用時機：進階練習</li>
+                            <li>特色：快手輸入英文字母，打擊泡泡。如果泡泡飄到上方，可怕的天花板就會下降一格，鍵盤搶快輸入英文試著生存下來。隨機出題的泡泡沒有做重複字母的篩選，運氣好的話可以同時打破2個泡泡，甚至同時打破3個。</li>
+                        </ul>
+                    </li>
+                    <li><strong>侏儸紀逃亡</strong>
+                        <ul>
+                            <li>配合課程：英文單字綜合運用</li>
+                            <li>使用時機：課程總結活動</li>
+                            <li>特色：恐龍逃出來了！快點完成英文單字，就會有水果加速逃亡者的奔跑速度，進到洞裡躲避恐龍。恐龍與人物的風格採用 ASCII 繪圖，維持獨有可愛的風格。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="suggestion-section">
+                <h3>    【建議使用順序】</h3>
+                <ol>
+                    <li>從基礎練習遊戲開始，讓學生熟悉基本操作</li>
+                    <li>待學生熟練後，進入進階練習遊戲</li>
+                    <li>視學生程度，選擇性使用挑戰級遊戲</li>
+                    <li>專家級遊戲建議作為獎勵或課後練習使用</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showSection(sectionId) {
+            // 隱藏所有區段
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // 顯示選擇的區段
+            document.getElementById(sectionId + '-section').classList.add('active');
+        }
+
+        // 預設顯示學生區段
+        document.addEventListener('DOMContentLoaded', () => {
+            showSection('student');
+        });
+    </script>
+</body>
+</html>
