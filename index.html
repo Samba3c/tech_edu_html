@@ -27,7 +27,7 @@
             background-color: var(--background-color);
             color: var(--text-color);
             line-height: 1.6;
-            font-size: 18px;
+            font-size: 20px;
         }
 
         header {
@@ -64,7 +64,7 @@
         }
 
         header h1 {
-            font-size: 2.8rem;
+            font-size: 3.2rem;
             color: white;
             text-shadow: 0 0 10px rgba(255,255,255,0.5),
                          0 0 20px rgba(255,255,255,0.3),
@@ -106,34 +106,48 @@
         }
 
         header p {
-            font-size: 1.4rem;
+            font-size: 1.6rem;
             color: rgba(255,255,255,0.9);
             text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
         }
 
-        nav {
-            background-color: #fff;
+        .nav-buttons {
+            text-align: center;
             padding: 1rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background: white;
             position: sticky;
             top: 0;
             z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        nav button {
+        .nav-button {
+            font-size: 1.4rem;
+            padding: 0.8rem 2rem;
+            margin: 0 1rem;
+            border: none;
+            border-radius: 4px;
             background-color: var(--primary-color);
             color: white;
-            border: none;
-            padding: 0.8rem 1.5rem;
-            margin: 0 0.5rem;
-            border-radius: 4px;
             cursor: pointer;
-            transition: background-color 0.3s;
-            font-size: 1.2rem;
+            transition: all 0.3s ease;
         }
 
-        nav button:hover {
+        .nav-button:hover {
             background-color: #357abd;
+            transform: translateY(-2px);
+        }
+
+        .nav-button.active {
+            background-color: var(--secondary-color);
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
         }
 
         .container {
@@ -142,24 +156,25 @@
             padding: 2rem;
         }
 
-        h2 {
-            font-size: 2.2rem;
-            position: relative;
+        .section h2 {
+            font-size: 2.4rem;
+            color: var(--primary-color);
             text-align: center;
             margin: 2rem 0;
-            padding-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
 
-        h2::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-            border-radius: 2px;
+        .section h3 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid rgba(0,0,0,0.1);
+        }
+
+        .section h4 {
+            font-size: 1.8rem;
+            color: var(--text-color);
+            margin: 2rem 0 1rem;
         }
 
         .games-grid {
@@ -175,7 +190,7 @@
             padding: 1.5rem;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             transition: transform 0.3s;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
         }
 
         .game-card:hover {
@@ -183,9 +198,9 @@
         }
 
         .game-card h3 {
+            font-size: 1.8rem;
+            margin: 1rem 0;
             color: var(--primary-color);
-            margin-top: 0;
-            font-size: 1.6rem;
             position: relative;
             padding-bottom: 0.5rem;
         }
@@ -205,33 +220,25 @@
             width: 100%;
         }
 
+        .game-card p {
+            font-size: 1.2rem;
+            margin: 1rem 0;
+            line-height: 1.6;
+        }
+
         .difficulty {
+            font-size: 1.4rem;
             color: var(--secondary-color);
             margin: 0.5rem 0;
-            font-size: 1.2rem;
-        }
-
-        .section {
-            display: none;
-        }
-
-        .section.active {
-            display: block;
-        }
-
-        .teacher-info {
-            background: white;
-            padding: 2rem;
-            border-radius: 8px;
-            margin-top: 2rem;
         }
 
         .game-link {
+            font-size: 1.4rem;
             display: inline-block;
             background-color: var(--primary-color);
             color: white;
             text-decoration: none;
-            padding: 0.5rem 1rem;
+            padding: 0.8rem 1.6rem;
             border-radius: 4px;
             margin-top: 1rem;
             transition: background-color 0.3s;
@@ -241,26 +248,35 @@
             background-color: #357abd;
         }
 
-        h3 {
+        .concept-section h3,
+        .guide-section h3,
+        .suggestion-section h3,
+        .system-requirements h3 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid rgba(0,0,0,0.1);
+        }
+
+        .guide-section h4 {
             font-size: 1.8rem;
+            padding: 1rem 1.5rem;
         }
 
-        h4 {
-            font-size: 1.5rem;
-            color: var(--primary-color);
-            border-left: 4px solid var(--secondary-color);
-            padding-left: 1rem;
-            margin: 1.5rem 0;
-            transition: all 0.3s ease;
+        .concept-section li,
+        .guide-section li,
+        .suggestion-section li,
+        .system-requirements li {
+            font-size: 1.2rem;
+            margin: 0.8rem 0;
+            line-height: 1.8;
         }
 
-        h4:hover {
-            transform: translateX(5px);
-            color: var(--secondary-color);
-        }
-
-        ul, ol {
-            font-size: 1.1rem;
+        .concept-section strong,
+        .guide-section strong,
+        .suggestion-section strong,
+        .system-requirements strong {
+            font-size: 1.4rem;
         }
 
         .difficulty-section {
@@ -389,16 +405,6 @@
             transition: all 0.3s ease;
         }
 
-        .concept-section h3,
-        .guide-section h3,
-        .suggestion-section h3 {
-            color: var(--text-color);
-            text-align: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 3px solid rgba(0,0,0,0.1);
-        }
-
         .concept-section ul,
         .guide-section ul,
         .suggestion-section ul,
@@ -472,7 +478,7 @@
 
         .system-requirements h3 {
             color: var(--text-color);
-            text-align: center;
+            text-align: left;
             margin-bottom: 1.5rem;
             padding-bottom: 1rem;
             border-bottom: 3px solid rgba(0,0,0,0.1);
@@ -482,13 +488,13 @@
 <body>
     <header>
         <h1>國小三年級資訊教育補充練習(遊戲集)</h1>
-        <p>透過遊戲融入英文，學習滑鼠操作與鍵盤輸入</p>
+        <p>將英文融入遊戲，學習滑鼠操作與鍵盤輸入</p>
     </header>
 
-    <nav>
-        <button onclick="showSection('student')">學生專區</button>
-        <button onclick="showSection('teacher')">教師專區</button>
-    </nav>
+    <div class="nav-buttons">
+        <button class="nav-button active" onclick="showSection('student')">學生遊戲區</button>
+        <button class="nav-button" onclick="showSection('teacher')">教師指引區</button>
+    </div>
 
     <div class="container">
         <div id="student-section" class="section active">
@@ -507,7 +513,7 @@
                     <div class="game-card">
                         <h3>英文字母指法</h3>
                         <p class="difficulty">難度：⭐</p>
-                        <p>練習英文字母與數字輸入，透過不同模式提升打字速度！</p>
+                        <p>練習英文字母與數字輸入，透過不同模式提升打字速度，挑戰7星大師！</p>
                         <a href="A00-英文字母指法（打字練習）.html" class="game-link">開始遊戲</a>
                     </div>
 
@@ -526,14 +532,14 @@
                     <div class="game-card">
                         <h3>貪食蛇遊戲</h3>
                         <p class="difficulty">難度：⭐⭐</p>
-                        <p>輸入英文單字後，用鍵盤控制貪食蛇吃掉對應的字母！</p>
+                        <p>輸入英文單字後，用鍵盤控制貪食蛇吃掉對應的字母順序！</p>
                         <a href="A02-貪食蛇遊戲（英文單字）.html" class="game-link">開始遊戲</a>
                     </div>
 
                     <div class="game-card">
                         <h3>卡牌記憶遊戲</h3>
                         <p class="difficulty">難度：⭐⭐</p>
-                        <p>找出配對的英文單字和圖案，眼明手快訓練記憶力！</p>
+                        <p>用滑鼠翻卡牌，找出配對的英文單字和圖案，限時訓練眼明手快記憶力！</p>
                         <a href="A03-卡牌記憶遊戲（英文識字）.html" class="game-link">開始遊戲</a>
                     </div>
                 </div>
@@ -545,7 +551,7 @@
                     <div class="game-card">
                         <h3>塔防打怪遊戲</h3>
                         <p class="difficulty">難度：⭐⭐⭐</p>
-                        <p>用英文字母擊退怪獸，捍衛你的堡壘！
+                        <p>輸入堡壘上的英文，發射字母炮彈擊退怪獸，捍衛你的堡壘！
                         <br>( 小技巧：善用 Combo 連擊，一次擊退多個敵人 )</p>
                         <a href="A01-塔防打怪遊戲（英文字母）.html" class="game-link">開始遊戲</a>
                     </div>
@@ -553,7 +559,7 @@
                     <div class="game-card">
                         <h3>卡牌配對挑戰</h3>
                         <p class="difficulty">難度：⭐⭐⭐</p>
-                        <p>完成英文單字和中文的配對，挑戰無限關卡！</p>
+                        <p>用滑鼠拖曳英文卡牌配對中文卡牌，挑戰無限關卡！</p>
                         <a href="A04-卡牌配對挑戰（英文識字）.html" class="game-link">開始遊戲</a>
                     </div>
                 </div>
@@ -565,7 +571,7 @@
                     <div class="game-card">
                         <h3>射泡泡遊戲</h3>
                         <p class="difficulty">難度：⭐⭐⭐⭐</p>
-                        <p>快速輸入英文字母，打破泡泡拯救世界！</p>
+                        <p>鍵盤搶快輸入英文，如果泡泡飄到上方，可怕的天花板就會下降一格，打破泡泡試著生存下來！</p>
                         <a href="A05-射泡泡遊戲（英文字母）.html" class="game-link">開始遊戲</a>
                     </div>
 
@@ -597,7 +603,7 @@
                     <li><strong>顯示設定</strong>
                         <ul>
                             <li>螢幕解析度：1920 x 1080</li>
-                            <li>縮放比例：100%</li>
+                            <li>螢幕及瀏覽器縮放比例：100%</li>
                         </ul>
                     </li>
                     <li><strong>注意事項</strong>
@@ -618,14 +624,14 @@
                         <ul>
                             <li>配合課程：注音輸入法教學</li>
                             <li>使用時機：課堂練習或課後複習</li>
-                            <li>特色：真實鍵盤配置、輸入字元顏色指引、錯誤提示，給予不同等級的星等回饋</li>
+                            <li>特色：真實鍵盤配置、輸入字元的顏色指引或錯誤提示，並給予1~7星的星等回饋</li>
                         </ul>
                     </li>
                     <li><strong>英文字母指法</strong>
                         <ul>
                             <li>配合課程：英文打字入門</li>
                             <li>使用時機：英文課程輔助教材</li>
-                            <li>特色：多種練習模式，適合初學者</li>
+                            <li>特色：提供10秒暖身、60秒挑戰、90秒練習模式，多種模式供教學或練習使用</li>
                         </ul>
                     </li>
                     <li><strong>迷你小畫家</strong>
@@ -643,14 +649,14 @@
                         <ul>
                             <li>配合課程：英文單字學習</li>
                             <li>使用時機：英文課程活動</li>
-                            <li>特色：結合英文拼字和方向鍵操作</li>
+                            <li>特色：認識中英文對照，並能輸入正確的英文單字，按下Enter之後，啟動貪食蛇遊戲。透過鍵盤上下左右控制貪食蛇，依照英文單字的字母順序，逐一吃完英文字母。搶快過關，藉此練習英文拼字，也熟練操作鍵盤的上下左右。</li>
                         </ul>
                     </li>
                     <li><strong>卡牌記憶遊戲</strong>
                         <ul>
                             <li>配合課程：英文詞彙學習</li>
                             <li>使用時機：課堂活動或課後練習</li>
-                            <li>特色：訓練滑鼠操作和記憶力，以及英文識字能力。採用 emoji 可愛圖文字，暢通網頁遊戲的進行。</li>
+                            <li>特色：訓練滑鼠操作的靈敏度並考驗記憶力，以及英文識字能力，進行卡牌配對挑戰。採用emoji可愛圖文字，暢通網頁遊戲的進行。</li>
                         </ul>
                     </li>
                 </ul>
@@ -668,7 +674,7 @@
                         <ul>
                             <li>配合課程：英文單字理解</li>
                             <li>使用時機：課堂評量活動</li>
-                            <li>特色：挑戰英文單字配對，同時考驗滑鼠操作準度，關卡時間愈來愈少，挑戰無限關卡！！</li>
+                            <li>特色：挑戰英文單字卡配對中文卡片，同時考驗滑鼠操作速度與準度，關卡時間愈來愈少，挑戰無限關卡！！</li>
                         </ul>
                     </li>
                 </ul>
@@ -678,8 +684,8 @@
                     <li><strong>射泡泡遊戲</strong>
                         <ul>
                             <li>配合課程：英文打字速度訓練</li>
-                            <li>使用時機：進階練習</li>
-                            <li>特色：快手輸入英文字母，打擊泡泡。如果泡泡飄到上方，可怕的天花板就會下降一格，鍵盤搶快輸入英文試著生存下來。隨機出題的泡泡沒有做重複字母的篩選，運氣好的話可以同時打破2個泡泡，甚至同時打破3個。</li>
+                            <li>使用時機：綜合英文打字進階練習</li>
+                            <li>特色：鍵盤搶快輸入英文試著生存下來。隨機出題的泡泡沒有做重複字母的篩選，運氣好的話可以同時打破2個泡泡，甚至同時打破3個。</li>
                         </ul>
                     </li>
                     <li><strong>侏儸紀逃亡</strong>
@@ -710,9 +716,14 @@
             document.querySelectorAll('.section').forEach(section => {
                 section.classList.remove('active');
             });
-            
-            // 顯示選擇的區段
+            // 顯示選中的區段
             document.getElementById(sectionId + '-section').classList.add('active');
+            
+            // 更新按鈕狀態
+            document.querySelectorAll('.nav-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            event.target.classList.add('active');
         }
 
         // 預設顯示學生區段
