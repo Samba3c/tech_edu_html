@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>迷你小畫家</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        .toolbar {
+            width: 200px;
+            padding: 15px;
+            background-color: #e0f7fa;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .title {
+            font-size: 1.5em;
+            font-weight: bold;
+            text-align: center;
+            padding: 10px 0;
+            color: #333;
+        }
+
+        .canvas-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #e0e0e0;
+            padding: 20px;
+        }
+
+        #canvas {
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+
+        .tool-group {
+            background-color: #e0e0e0;
+            padding: 2px;
+            border: 1px solid black;
+            border-radius: 0px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            width: calc(100% );
+            padding: 10px;
+            margin: 0px;
+            border: none;
+            border-radius: 0px;
+            background-color: #e0e0e0;
+            color: black;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 1.1em;
+        }
+
+        button:hover {
+            background-color: #b0b0b0;
+        }
+
+        input[type="color"] {
+            width: 40px;
+            height: 30px;
+            padding: 2px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        input[type="range"] {
+            width: calc(100% - 40px);
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .tool-group span {
+            display: inline-block;
+            width: 30px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .layer-item {
+            padding: 10px;
+            margin: 5px 0;
+            background-color: #f8f8f8;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .layer-item.active {
+            background-color: #e3f2fd;
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <div class="title">🎨️迷你小畫家</div>
+        
+
+
+        <div class="tool-group">
+            <button id="undoBtn">↩️ 復原</button>
+        </div>
+        <div class="tool-group">
+            <button id="redoBtn">↪️ 重做</button>
+        </div>
+        <div class="tool-group">
+            <label>畫筆形狀：</label>
+            <select id="brushShape">
+                <option value="round">圓形</option>
+                <option value="square">方形</option>
+            </select>
+        </div>
+        <div class="tool-group">
+            <label>畫筆大小：<span id="brushSizeValue">8</span></label>
+            <input type="range" id="brushSize" min="1" max="16" value="8" oninput="document.getElementById('brushSizeValue').textContent = this.value;">
+        </div>
+        <div class="tool-group">
+            <label>🖌️ 畫筆顏色：</label>
+            <input type="color" id="colorPicker" value="#000000">
+        </div>
+        <div class="tool-group">
+            <button id="fillBtn">🖍️ 油漆桶填色</button>
+        </div>
+        <div class="tool-group">
+            <button id="clearBtn">❌ 清除畫布</button>
+        </div>
+        <div class="tool-group">
+            <button id="downloadBtn">💾 下載存檔</button>
+        </div>
+        <div class="tool-group">
+            <input type="file" id="fileInput" accept="image/*">
+        </div>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="canvas" width="1280" height="720"></canvas>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const layers = {
+            top: document.createElement('canvas'),
+            bottom: document.createElement('canvas')
+        };
+        let currentLayer = 'top';
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        let fillMode = false;
+
+        // 初始化圖層
+        Object.values(layers).forEach(layer => {
+            layer.width = canvas.width;
+            layer.height = canvas.height;
+        });
+
+        // 繪圖歷史記錄
+        const history = {
+            undoStack: [],
+            redoStack: [],
+            maxSteps: 5,
+            
+            saveState() {
+                const state = {
+                    top: layers.top.toDataURL(),
+                    bottom: layers.bottom.toDataURL()
+                };
+                
+                this.undoStack.push(state);
+                if (this.undoStack.length > this.maxSteps) {
+                    this.undoStack.shift();
+                }
+                this.redoStack = [];
+            },
+
+            undo() {
+                if (this.undoStack.length > 0) {
+                    const currentState = {
+                        top: layers.top.toDataURL(),
+                        bottom: layers.bottom.toDataURL()
+                    };
+                    this.redoStack.push(currentState);
+                    
+                    const state = this.undoStack.pop();
+                    loadState(state);
+                    renderCanvas();
+                }
+            },
+
+            redo() {
+                if (this.redoStack.length > 0) {
+                    const state = this.redoStack.pop();
+                    this.undoStack.push({
+                        top: layers.top.toDataURL(),
+                        bottom: layers.bottom.toDataURL()
+                    });
+                    loadState(state);
+                }
+            }
+        };
+
+        function loadState(state) {
+            Object.entries(state).forEach(([layerName, dataUrl]) => {
+                const img = new Image();
+                img.onload = () => {
+                    const layerCtx = layers[layerName].getContext('2d');
+                    layerCtx.clearRect(0, 0, canvas.width, canvas.height);
+                    layerCtx.drawImage(img, 0, 0);
+                    renderCanvas();
+                };
+                img.src = dataUrl;
+            });
+        }
+
+        function renderCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(layers.bottom, 0, 0);
+            ctx.drawImage(layers.top, 0, 0);
+        }
+
+        // 事件監聽器
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        function startDrawing(e) {
+            isDrawing = true;
+            [lastX, lastY] = getMousePos(canvas, e);
+            
+            if (fillMode) {
+                const currentCtx = layers[currentLayer].getContext('2d');
+                const color = document.getElementById('colorPicker').value;
+                floodFill(currentCtx, Math.floor(lastX), Math.floor(lastY), color);
+                renderCanvas();
+                history.saveState();
+                return;
+            }
+        }
+
+        function draw(e) {
+            if (!isDrawing || fillMode) return;
+
+            const currentCtx = layers[currentLayer].getContext('2d');
+            const [x, y] = getMousePos(canvas, e);
+            
+            currentCtx.beginPath();
+            currentCtx.moveTo(lastX, lastY);
+            currentCtx.lineTo(x, y);
+            currentCtx.strokeStyle = document.getElementById('colorPicker').value;
+            currentCtx.lineWidth = document.getElementById('brushSize').value;
+            currentCtx.lineCap = document.getElementById('brushShape').value;
+            currentCtx.stroke();
+            
+            [lastX, lastY] = [x, y];
+            renderCanvas();
+        }
+
+        function stopDrawing() {
+            if (isDrawing) {
+                isDrawing = false;
+                history.saveState();
+            }
+        }
+
+        function getMousePos(canvas, e) {
+            const rect = canvas.getBoundingClientRect();
+            return [
+                (e.clientX - rect.left) * (canvas.width / rect.width),
+                (e.clientY - rect.top) * (canvas.height / rect.height)
+            ];
+        }
+
+        // 油漆桶填色功能
+        function floodFill(ctx, x, y, fillColor) {
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const pixels = imageData.data;
+            
+            const startPos = (y * canvas.width + x) * 4;
+            const startR = pixels[startPos];
+            const startG = pixels[startPos + 1];
+            const startB = pixels[startPos + 2];
+            const startA = pixels[startPos + 3];
+
+            const fillColorRGB = hexToRgb(fillColor);
+            
+            function matchesStart(pos) {
+                return pixels[pos] === startR &&
+                       pixels[pos + 1] === startG &&
+                       pixels[pos + 2] === startB &&
+                       pixels[pos + 3] === startA;
+            }
+
+            function colorPixel(pos) {
+                pixels[pos] = fillColorRGB.r;
+                pixels[pos + 1] = fillColorRGB.g;
+                pixels[pos + 2] = fillColorRGB.b;
+                pixels[pos + 3] = 255;
+            }
+
+            const pixelsToCheck = [startPos];
+            while (pixelsToCheck.length > 0) {
+                const pos = pixelsToCheck.pop();
+                const x = (pos / 4) % canvas.width;
+                const y = Math.floor((pos / 4) / canvas.width);
+
+                if (matchesStart(pos)) {
+                    colorPixel(pos);
+
+                    if (x > 0) pixelsToCheck.push(pos - 4);
+                    if (x < canvas.width - 1) pixelsToCheck.push(pos + 4);
+                    if (y > 0) pixelsToCheck.push(pos - canvas.width * 4);
+                    if (y < canvas.height - 1) pixelsToCheck.push(pos + canvas.width * 4);
+                }
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+        }
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        // UI 事件處理
+        document.getElementById('undoBtn').onclick = () => history.undo();
+        document.getElementById('redoBtn').onclick = () => history.redo();
+        document.getElementById('clearBtn').onclick = () => {
+            const currentCtx = layers[currentLayer].getContext('2d');
+            currentCtx.clearRect(0, 0, canvas.width, canvas.height);
+            renderCanvas();
+            history.saveState();
+        };
+
+        document.getElementById('fillBtn').onclick = function() {
+            fillMode = !fillMode;
+            this.textContent = fillMode ? '🛑 停止油漆桶' : '🖍️ 油漆桶填色';
+            this.style.backgroundColor = fillMode ? '#ff9800' : '#e0e0e0';
+        };
+
+        document.getElementById('downloadBtn').onclick = () => {
+            const link = document.createElement('a');
+            link.download = 'miniPaint.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        };
+
+        document.getElementById('uploadBtn').onclick = () => {
+            document.getElementById('fileInput').click();
+        };
+
+        document.getElementById('fileInput').onchange = function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const currentCtx = layers[currentLayer].getContext('2d');
+                        currentCtx.clearRect(0, 0, canvas.width, canvas.height);
+                        currentCtx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        renderCanvas();
+                        history.saveState();
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        // 圖層切換
+        document.querySelectorAll('.layer-item').forEach(item => {
+            item.onclick = function() {
+                document.querySelector('.layer-item.active').classList.remove('active');
+                this.classList.add('active');
+                currentLayer = this.dataset.layer;
+            };
+        });
+
+        // 初始化畫布
+        renderCanvas();
+    </script>
+</body>
+</html>
